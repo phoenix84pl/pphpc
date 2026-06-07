@@ -14,11 +14,32 @@ class Status
 
     public function db(): Response
     {
-        // CAŁKOWITY RESET – ŻADNEGO REQESTU, ŻADNEGO DB. 
-        // Sprawdzamy tylko, czy sam kontroler potrafi wypluć JSONA.
-        
-        $status = ['test_kontrolera' => 'DZIALA_BEZ_500'];
-        
+        global $db;
+
+        try {
+            if ($db === null) {
+                throw new \Exception("Obiekt bazy (\$db) ma wartość null w public/index.php.");
+            }
+
+            if (!($db instanceof \Phoenix\Core\Database)) {
+                throw new \Exception("Zmienna \$db nie jest instancją klasy Phoenix\\Core\\Database.");
+            }
+
+            // Testujemy naprawioną metodę query()
+            $stmt = $db->query("SELECT 1");
+
+            if ($stmt === FALSE) {
+                throw new \Exception($db->error ?? "Brak odpowiedzi z MySQL.");
+            }
+
+            $status = ['database' => 'OK'];
+        } catch (\Exception $e) {
+            $status = [
+                'database' => 'ERROR',
+                'error' => $e->getMessage()
+            ];
+        }
+
         return new Response(200, ['Content-Type' => 'application/json'], json_encode($status));
     }
 }
