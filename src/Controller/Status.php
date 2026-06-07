@@ -38,11 +38,12 @@ class Status
             $code = 200;
 
         } catch (\Exception $e) {
+            // Każdy błąd (w tym brak obiektu) ląduje tutaj i zwraca czytelny JSON zamiast błędu 500!
             $status = [
                 'database' => 'ERROR',
                 'error' => $e->getMessage()
             ];
-            $code = 200;
+            $code = 500;
         }
 
         return new Response($code, ['Content-Type' => 'application/json'], json_encode($status));
