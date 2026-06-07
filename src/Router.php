@@ -5,6 +5,7 @@ namespace Phoenix\Core;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Nyholm\Psr7\Response;
 
 class Router 
 {
@@ -29,17 +30,55 @@ class Router
         $method = $request->getMethod();
         $uri = trim($request->getUri()->getPath(), '/');
 
+        // 1. Priorytet: Sztywne, ręczne trasy dewelopera
         if (isset($this->routes[$method][$uri])) {
             return $this->executeHandler($this->routes[$method][$uri], $request);
         }
 
-        // Automatyczny fallback dla migracji Twoich starych plików
-        $autoFile = $this->viewsPath . '/' . ($uri === '' ? 'index' : $uri) . '.php';
-        if (file_exists($autoFile)) {
-            return $this->executeHandler($autoFile, $request);
+        // Rozbijamy URL na części do routingu dynamicznego
+        $czesci = array_values(array_filter(explode('/', $uri)));
+        $typ = $czesci[0] ?? '';
+
+        // 2. Dynamiczna obsługa podziału architektonicznego (action, api, file, core)
+        if (in_array($typ, ['action', 'api', 'file', 'core']) && isset($czesci[1], $czesci[2])) {
+            
+            if ($typ === 'core' && $czesci[1] === 'status') {
+                // Wyjątek dla wbudowanego statusu systemu w rdzeniu
+                $className = "\\Phoenix\\Core\\Controller\\Status";
+                $akcja = $czesci[2];
+            } else {
+                // Dynamiczne mapowanie: /api/stock/list -> \Phoenix\App\Controller\Api\Stock->list()
+                $subNamespace = ucfirst($typ);         // "api" -> "Api", "action" -> "Action"
+                $controllerName = ucfirst($czesci[1]); // "stock" -> "Stock"
+                $akcja = $czesci[2];                  // "list"
+                
+                $className = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}";
+            }
+
+            if (class_exists($className) && method_exists($className, $akcja)) {
+                return $this->executeHandler([$className, $akcja], $request);
+            }
+
+            return new Response(404, ['Content-Type' => 'application/json'], json_encode([
+                'status' => 'ERROR',
+                'message' => "Endpoint [{$typ}] not found or method missing in class {$className}."
+            ]));
         }
 
-        return new \Nyholm\Psr7\Response(404, [], '<h1>404 - Not Found (Phoenix Core)</h1>');
+        // 3. Obsługa WIDOKÓW (view / lub czysty fallback bez prefiksu dla ładnych URL)
+        $viewUri = ($typ === 'view') ? implode('/', array_slice($czesci, 1)) : $uri;
+        $viewFile = $this->viewsPath . '/' . ($viewUri === '' ? 'index' : $viewUri) . '.phtml';
+
+        if (file_exists($viewFile)) {
+            return $this->executeHandler($viewFile, $request);
+        }
+
+        // 4. Całkowity brak dopasowania (Zwraca JSON dla kodu, HTML dla stron)
+        if (in_array($typ, ['api', 'action'])) {
+            return new Response(404, ['Content-Type' => 'application/json'], json_encode(['status' => 'ERROR', 'message' => '404 - Endpoint Not Found']));
+        }
+        
+        return new Response(404, [], '<h1>404 - Not Found (Phoenix Core)</h1>');
     }
 
     private function executeHandler(mixed $handler, ServerRequestInterface $request): ResponseInterface
@@ -47,14 +86,14 @@ class Router
         if (is_callable($handler)) {
             $result = $handler($request);
             if ($result instanceof ResponseInterface) return $result;
-            return new \Nyholm\Psr7\Response(200, [], (string)$result);
+            return new Response(200, [], (string)$result);
         }
 
         if (is_string($handler) && file_exists($handler)) {
             ob_start();
             require $handler;
             $content = ob_get_clean();
-            return new \Nyholm\Psr7\Response(200, [], $content);
+            return new Response(200, [], $content);
         }
 
         if (is_array($handler)) {
@@ -62,9 +101,9 @@ class Router
             $controller = new $controllerClass();
             $result = $controller->$method($request);
             if ($result instanceof ResponseInterface) return $result;
-            return new \Nyholm\Psr7\Response(200, [], (string)$result);
+            return new Response(200, [], (string)$result);
         }
 
-        return new \Nyholm\Psr7\Response(500, [], '<h1>500 - Invalid Handler</h1>');
+        return new Response(500, [], '<h1>500 - Invalid Handler</h1>');
     }
 }

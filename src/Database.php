@@ -40,6 +40,7 @@
 	//20260603	usunięcie $filtry i SQL_Skontroluj (przejście na pełne Prepared Statements)
 	//20260603  Dodanie obsługi raw, raw(), _raw() (ochrona przez XSS)
 	//20260607	Przejście na Github + Composer + Namespace + zmiana nazwy na Database
+	//20260607  dodanie metody query w ramach kompatybilności ze standardami do obsługi zapytań bezwynikowych typu DROP czy TRUNCATE
 
 namespace PPHPC;
 class Database
@@ -312,6 +313,39 @@ class Database
 			'parametry' => $parametry,
 			'bezWhere'  => false
 		];
+	}
+
+	public function query(string $sql, array $parametry = [])
+	{
+			//funkcja w ramach kompatybilności z innymi klasami do obsługi DB czy do wykonywania zapytań bezwynikowych typu DROP czy TRUNCATE 
+
+			$this->sql = $sql;
+		$this->ilosc_zapytan++;
+
+		try {
+			// Jeśli nie ma parametrów, wykonujemy szybkie, surowe zapytanie
+			if (empty($parametry)) {
+				$stmt = $this->oDB->query($sql);
+			} else {
+				// Jeśli są parametry, bezpiecznie je przygotowujemy
+				$stmt = $this->oDB->prepare($sql);
+				$stmt->execute($parametry);
+			}
+
+			// Zapisujemy błędy i debugujemy SQL, jeśli coś poszło nie tak
+			if ($stmt) {
+				$info = $stmt->errorInfo();
+				$this->error = ($info[0] !== '00000') ? var_export($info, true) : null;
+				if (!empty($parametry)) {
+					$this->sql = $this->_debug_sql($sql, $parametry);
+				}
+			}
+
+			return $stmt; // Zwraca obiekt \PDOStatement lub FALSE
+		} catch (\PDOException $e) {
+			$this->error = $e->getMessage();
+			return FALSE;
+		}
 	}
 
 	public function select($tabelaLUBsql, $kolumny = NULL, $warunki = NULL)
