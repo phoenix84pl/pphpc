@@ -1,0 +1,37 @@
+# ----------------------------------------------------------------------
+# Bezpieczeństwo i blokady podstawowe
+# ----------------------------------------------------------------------
+
+# Blokada podglądu katalogów (gdyby w folderze nie było pliku index)
+Options -Indexes
+
+# Wyłączenie podpisu serwera w komunikatach o błędach (ukrywa wersję Apache)
+ServerSignature Off
+
+# Blokada dostępu do samego pliku .htaccess oraz plików .htpasswd
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+
+# ----------------------------------------------------------------------
+# Silnik Routingu (Przekierowanie całego ruchu do index.php)
+# ----------------------------------------------------------------------
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Ustawienie ścieżki bazowej na główny katalog domeny
+    RewriteBase /
+
+    # Warunek 1: Jeśli żądany plik fizycznie istnieje na dysku (np. CSS, JS, obrazek)...
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    # Warunek 2: ...lub jeśli żądany katalog fizycznie istnieje...
+    RewriteCond %{REQUEST_FILENAME} -d
+    # REGUŁA: ...to nic nie rób i serwuj go normalnie (L - Last rule)
+    RewriteRule ^ - [L]
+
+    # W PRZECIWNYM WYPADKU:
+    # Przechwyć cały adres i przekaż go jako ukryty parametr do index.php.
+    # QSA automatycznie dokleja parametry GET (np. ?symbol=BTC)
+    RewriteRule ^(.*)$ index.php [L,QSA]
+</IfModule>
