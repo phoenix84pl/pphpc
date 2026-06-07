@@ -42,7 +42,7 @@
 	//20260607	Przejście na Github + Composer + Namespace + zmiana nazwy na Database
 	//20260607  dodanie metody query w ramach kompatybilności ze standardami do obsługi zapytań bezwynikowych typu DROP czy TRUNCATE
 
-namespace PPHPC;
+namespace Phoenix\Core;
 class Database
 {
 	private	$oDB;
