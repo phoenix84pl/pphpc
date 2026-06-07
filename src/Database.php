@@ -62,9 +62,11 @@ class Database
 	public	$distinct=NULL;		//przechowanie DISTINCT do następnego zapytania
 	public	$set=[];			//lista kolumn typu set, żeby silnik wiedział, że dane ma zwrócić/zapisać jako array, a nie tekst
 
-	public	function __construct($host, $login=NULL, $haslo=NULL, $baza=NULL)
+	public	function __construct($host=NULL, $login=NULL, $haslo=NULL, $baza=NULL)
 	{
-		//ustawia dane połączenia i je wywołuje
+		if ($host === NULL) return $this;	//brak danych nie wywala całej strony, po prostu zwraca pusty obiekt
+
+			//ustawia dane połączenia i je wywołuje
 		if(is_array($host))
 		{
 			$this->host=$host['host'];
