@@ -1,0 +1,7 @@
+vendor/
+.composer/
+.keyframes/
+*.log
+.DS_Store
+.idea/
+.vscode/
