@@ -1,0 +1,372 @@
+html, body	{height: 100%; padding: 0px; margin: 0px; font-family: 'Comfortaa', cursive;}
+img			{border: none; vertical-align: middle;}
+table 		{border-collapse: collapse;}
+table > tbody > tr > td {padding: 0;}
+
+:root {font-size: 0.9rem; line-height: 1.4;}
+@media (max-width: 768px) { :root		{font-size: 0.6rem;} }
+
+#CMSMain	{height: 100%; width: 100%; position: relative;}
+#CMLloader	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; text-align: center; overflow: hidden; display: none;}
+#CMSStarter	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; background-image: url("../img/bg/CMSStarter.jpg"); background-position: center; background-size: cover; text-align: center; color: #404040; text-shadow: -1px 0 #cccccc, 0 1px #cccccc, 1px 0 #cccccc, 0 -1px #cccccc;}
+#CMSHeader	{position: absolute; top: 0; left: 0; width: calc(100% - 10px); height: 20px; padding: 0 5px; background: #000000; border-bottom: 1px solid purple; color: white; text-align: right;}
+#CMSHeader a	{color: #ffffff; text-decoration: none;}
+#CMSLogo img	{width: 16px; height: 16px; padding: 5px;}
+#CMSPlayground	{position: absolute; top: 20px; left: 0; height: calc(100% - 20px); width: 100%; overflow: hidden; background-image: url("../img/bg/CMSPlayground.jpg"); background-position: center; background-size: cover;}
+
+#CMSShadow		{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: rgba(0, 0, 0, 0.75); display: none;}
+#CMSWindowCenter	{position: absolute; top: 20%; left: 20%; height: 60%; width: 60%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSWindowTop		{position: absolute; top: 0; left: 20%; height: 18%; width: 60%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSWindowBottom	{position: absolute; top: 82%; left: 0; height: 18%; width: 100%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSWindowLeft		{position: absolute; top: 0; left: 0; height: 80%; width: 18%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSWindowRight		{position: absolute; top: 0; left: 82%; height: 80%; width: 18%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSWindowOver		{position: absolute; top: 0; left: 0; height: 80%; width: 80%; display: none; border-radius: 10px; text-align: center; overflow-y: auto; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+#CMSNotice		{position: absolute; bottom: 1%; left: 9%; height: 18%; width: 82%; background-image: linear-gradient(rgba(255, 92, 92, 0.82), rgba(165, 0, 0, 0.82)); display: none; border-radius: 10px; text-align: center; overflow-y: hidden; box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.5), 10px 10px 20px 0 rgba(0, 0, 0, 0.4);}
+
+.CMSKontener	{display: flex; flex-direction: column; flex: 1; width: 100%; height: 100%; max-width: 100%; max-height: 100%; background: transparent;}	/*kontener (okienko) - rozpycha się*/
+.CMSWnetrze	{flex: 1; display: flex; align-items: center; justify-content: center; }			/*wnętrze dla kontenera - rozpycha się i centruje wnętrzności*/
+.CMSCenter	{align-items: center; justify-content: center; text-align: center;}	/*Centruje wnętrze*//*Do rozważenia czy nie dodać też zawartości klas center i middle*/
+.CMSCenterSelf	{margin: 0 auto;}						/*Centruje sam siebie*/
+.CMSMax		{width: 100%; height: 100%; max-width: 100%; max-height: 100%;}
+.CMSMaxW	{width: 100%; max-width: 100%;}
+.CMSMaxH	{height: 100%; max-height: 100%;}
+.CMSRelative{position: relative;}
+.CMSLeft	{text-align: left;}
+.CMSRight	{text-align: right;}
+.CMSTop		{vertical-align:top;}
+.CMSBottom	{vertical-align:bottom;}
+.CMSFlex	{display: flex;}
+.CMSBold	{font-weight: bold;}
+
+.CMSSekcja	{font-size: 1.5em; padding: 10px; font-weight: 700;}
+.CMSTytul	{font-size: 1.5em; padding: 10px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 0.5em;}
+.CMSTlo		{background-image: linear-gradient(145deg, rgba(0, 0, 0, 0.68) 0%, rgba(28, 28, 28, 0.75) 45%, rgba(15, 15, 15, 0.82) 100%), linear-gradient(110deg, transparent 0%, transparent 35%, rgba(255, 255, 255, 0.15) 47%, rgba(255, 255, 255, 0.22) 50%, rgba(255, 255, 255, 0.15) 53%, transparent 65%, transparent 100%), radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.08) 0%, transparent 50%); border: 1px solid rgba(255, 255, 255, 0.18); border-top: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.6), inset -1px 0 1px rgba(255, 255, 255, 0.06); color: ghostwhite;}
+.CMSTloJasne	{background-image: linear-gradient(rgba(255, 255, 255, 0.82), rgba(209, 209, 209, 0.82)); color: #141419;}	/*docelowo znaleźć jaki fajny ciemny kolor pasujący do jasnego tła*/
+.CMSTloCiemne	{background-image: linear-gradient(rgba(0, 0, 0, 0.82), rgba(46, 46, 46, 0.82));  color: ghostwhite;}
+.CMSTloFixed	{background-image: url('../img/bg/CMSPlayground.jpg'); background-position: center; background-size: cover; background-attachment: fixed; overflow: hidden; position: relative;}
+
+.CMSMiniText {font-size: 0.618em;}
+.CMSMaxiText {font-size: 1.618em;}
+.CMSLink {cursor: pointer;}
+.CMSNoWrap {white-space: nowrap;}
+.CMSPreWrap {white-space: pre-wrap;}
+
+.CMSLoading {width: 128px; height: 128px;}	/*obrazek ładowania*/
+.CMSLoginGoogle {display: flex; justify-content: center; align-items: center; width: 100%; min-height: 44px;}
+
+/*tabela*/
+.CMSTRSeparator {position: relative; border: none;} .CMSTRSeparator::after {content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);}
+
+/*input*/
+
+.CMSButton {
+    /* Podstawy */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Elastyczny rozmiar */
+    padding: 1em;
+    min-width: 1.5em;
+    height: 3em;
+    
+    /* Szklany efekt */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* Ramka */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.5em;
+    
+    /* Cienie - efekt unoszenia */
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    /* Font */
+    line-height: 1;
+    color: ghostwhite;	/*Można też inherit, ale wtedy czasem jest czarny, więc trzeba ustawić kolor domyślny dla strony*/
+    font-size: inherit;
+    font-family: inherit;
+    
+    /* Animacja */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+}
+
+.CMSButton:hover {
+    /* Jaśniejsze tło przy hover */
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    
+    /* Podniesienie */
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.CMSButton:active {
+    /* Wciśnięcie */
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.CMSButton:disabled,
+.CMSButton[disabled] {
+    /* Przyciemnione tło */
+    background: rgba(255, 255, 255, 0.05);
+    
+    /* Słabsza ramka */
+    border-color: rgba(255, 255, 255, 0.1);
+    
+    /* Zmniejszona przezroczystość */
+    opacity: 0.5;
+    
+    /* Brak kursora pointer */
+    cursor: not-allowed;
+    
+    /* Wyłączenie efektu unoszenia */
+    transform: none;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    
+    /* Wyłączenie interakcji */
+    pointer-events: none;
+}
+
+/* Opcjonalnie: zapewnienie, że hover i active nie działają */
+.CMSButton:disabled:hover,
+.CMSButton[disabled]:hover,
+.CMSButton:disabled:active,
+.CMSButton[disabled]:active {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: none;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.CMSButtonDefault {
+    /* Złoty akcent dla domyślnego guzika */
+    background: linear-gradient(
+        135deg, 
+        rgba(255, 215, 0, 0.2) 0%, 
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 215, 0, 0.2) 100%
+    );
+    
+    /* Złota ramka z delikatnym świeceniem */
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 20px rgba(255, 215, 0, 0.3);
+    
+    /* Pogrubiona czcionka dla podkreślenia ważności */
+    font-weight: 600;
+}
+
+.CMSButtonDefault:hover {
+    background: linear-gradient(
+        135deg, 
+        rgba(255, 215, 0, 0.3) 0%, 
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 215, 0, 0.3) 100%
+    );
+    border-color: rgba(255, 215, 0, 0.7);
+    
+    /* Intensywniejsze świecenie */
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(255, 215, 0, 0.5);
+}
+
+.CMSButtonDefault:active {
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 3px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Wyłączenie złotego efektu dla disabled */
+.CMSButtonDefault:disabled,
+.CMSButtonDefault[disabled] {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.CMSInput {
+    /* Podstawy */
+    display: inline-block;
+    width: 100%;
+    
+    /* Elastyczny rozmiar */
+    padding: 1em;
+    height: 3em;
+    min-height: 3em;
+    
+    /* Szklany efekt */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* Ramka */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.25em;
+    
+    box-sizing: border-box;	/*żeby nie wystawał poza td*/
+
+    /* Cienie - efekt unoszenia */
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        
+    
+    /* Font */
+    font-size: inherit;
+    font-family: inherit;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+    
+    /* Animacja */
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.CMSInputMini {
+    padding: 0.2em;
+    min-width: auto;
+    height: auto;
+    line-height: 1;
+}
+
+.CMSInput::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.CMSInput:hover {
+    /* Jaśniejsze tło przy hover */
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.CMSInput:focus {
+    /* Wyraźniejszy efekt przy focus */
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 0 0 3px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.CMSInput:disabled {
+    /* Stan disabled */
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.CMSInput option {
+    background: rgba(0, 0, 0, 0.9);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.5em;
+}
+
+.CMSInput option:hover,
+.CMSInput option:checked {
+    background: rgba(50, 50, 50, 0.95);
+    color: white;
+}
+
+/* Dla checkbox i radio */
+.CMSInput[type="checkbox"],
+.CMSInput[type="radio"] {
+    width: auto;
+    min-width: 1.2em;
+    min-height: 1.2em;
+    cursor: pointer;
+}
+
+/* Dla range slider */
+.CMSInput[type="range"] {
+    padding: 0;
+    min-height: 1.5em;
+    cursor: pointer;
+}
+
+/* Dla file input */
+.CMSInput[type="file"] {
+    cursor: pointer;
+    padding: 0.4em 0.8em;
+}
+.CMSInput[type="file"]::file-selector-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.2em;
+    padding: 0.4em 0.8em;
+    margin-right: 0.8em;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.CMSInput[type="file"]::file-selector-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Dla color picker */
+.CMSInput[type="color"] {
+    padding: 0.2em;
+    cursor: pointer;
+    width: 3em;
+    height: 3em;
+}
+
+
+/* Scroll */
+.CMSScroll {
+    overflow: auto;
+    width: 100%;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
+
+.CMSScrollX {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
+
+.CMSScrollY {				/*UWAGA! Zazwyczaj nie zadziała jeśli będzie gdzieś w drzewie CMSWnetrze, albo musi być przed pierwszym CMSWnetrze, albo któryś z naddivów między tym a CMSWnetrze musi mieć ustawiony max-height*/
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
+
+/*tmp*/
+
+
+
