@@ -14,37 +14,11 @@ class Status
 
     public function db(): Response
     {
-        global $db;
-
-        try {
-            // 1. KROK BEZPIECZEŃSTWA: Sprawdzamy, czy zmienna w ogóle została zainicjalizowana
-            if ($db === null) {
-                throw new \Exception("Database object (\$db) is null. Verify your public/index.php configuration.");
-            }
-
-            // 2. KROK BEZPIECZEŃSTVA: Sprawdzamy, czy to na pewno jest obiekt naszej klasy Database
-            if (!($db instanceof \Phoenix\Core\Database)) {
-                throw new \Exception("Database object is invalid or wrong instance type.");
-            }
-
-            // Dopiero gdy mamy 100% pewności, że obiekt żyje, odpytujemy bazę
-            $stmt = $db->query("SELECT 1");
-
-            if ($stmt === FALSE) {
-                throw new \Exception($db->error ?? "Brak odpowiedzi od serwera MySQL.");
-            }
-
-            $status = ['database' => 'OK'];
-            $code = 200;
-
-        } catch (\Exception $e) {
-            $status = [
-                'database' => 'ERROR',
-                'error' => $e->getMessage()
-            ];
-            $code = 200;
-        }
-
-        return new Response($code, ['Content-Type' => 'application/json'], json_encode($status));
+        // CAŁKOWITY RESET – ŻADNEGO REQESTU, ŻADNEGO DB. 
+        // Sprawdzamy tylko, czy sam kontroler potrafi wypluć JSONA.
+        
+        $status = ['test_kontrolera' => 'DZIALA_BEZ_500'];
+        
+        return new Response(200, ['Content-Type' => 'application/json'], json_encode($status));
     }
 }
