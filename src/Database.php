@@ -127,61 +127,14 @@ class Database
 	private	function _przygotuj()
 	{
 		//funkcja wykonuje się przed wykonaniem zapytania
+		if ($this->oDB === null) throw new \Exception("Brak aktywnego połączenia z bazą danych (oDB is null). Upewnij się, że podałeś poprawne dane konfiguracyjne.");
+	
 		$this->bazaSet($this->baza);		//bo mu sie czasem pierdola polaczenia
 		$this->ilosc_zapytan++;
 		
 		return $this;
 	}
 	
-	private function _pobierzStare()
-	{
-		//!!!do wywalenia, bo używana tylko w starych metodach
-		//funkcja sluzy do odpytywania kiedy nie zwraca danych tabelarycznych
-		
-		if($this->sql==NULL) return FALSE;
-
-		$efekt=NULL;
-		try { $efekt=$this->_przygotuj()->oDB->query($this->sql); }
-		catch (PDOException $e) { echo "PDO ERROR: \"{$e->getMessage()}\".\nSQL:\"{$this->sql}\""; }
-		
-		$wynik=array();
-		if($efekt==FALSE) return FALSE;			//np. brak kolumny
-		if($efekt->rowCount()>0)
-		{
-			foreach($efekt as $klucz=>$rekord)
-			{
-				foreach($rekord as $kolumna=>$wartosc)
-				{
-					if($this->colNum===TRUE)
-					{
-							//jeśli kolumny po numerach
-						if(is_int($kolumna)) $wynik[$klucz][$kolumna]=$wartosc;
-					}
-					else
-					{
-							//jeśli kolumny po nazwach
-						if(!is_int($kolumna))
-						{
-							// Obsługa kolumn typu SET - przekształć w tablicę jeśli jest w liście $this->set
-							if(!empty($this->set) && in_array($kolumna, $this->set) && is_string($wartosc))
-							{
-								$wynik[$klucz][$kolumna] = array_map('trim', explode(',', $wartosc));
-							}
-							else
-							{
-								$wynik[$klucz][$kolumna] = $wartosc;
-							}
-						}
-					}
-				}
-			}
-			$efekt->closeCursor();
-		}
-		$this->colNum=NULL;
-
-		return $wynik;
-	}
-
 	private function _pobierz()
 	{
 		if ($this->sql == NULL) return FALSE;
@@ -321,7 +274,8 @@ class Database
 	{
 			//funkcja w ramach kompatybilności z innymi klasami do obsługi DB czy do wykonywania zapytań bezwynikowych typu DROP czy TRUNCATE 
 
-			$this->sql = $sql;
+		$this->_przygotuj();
+		$this->sql = $sql;
 		$this->ilosc_zapytan++;
 
 		try {
