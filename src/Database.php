@@ -317,7 +317,7 @@ class Database
 		];
 	}
 
-	public function query(string $sql)
+	public function query(string $sql, array $parametry = [])
 	{
 			//funkcja w ramach kompatybilności z innymi klasami do obsługi DB czy do wykonywania zapytań bezwynikowych typu DROP czy TRUNCATE 
 
