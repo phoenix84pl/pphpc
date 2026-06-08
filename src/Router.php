@@ -67,7 +67,20 @@ class Router
 
         // 3. Obsługa WIDOKÓW (view / lub czysty fallback bez prefiksu dla ładnych URL)
         $viewUri = ($typ === 'view') ? implode('/', array_slice($czesci, 1)) : $uri;
-        $viewFile = $this->viewsPath . '/' . ($viewUri === '' ? 'index' : $viewUri) . '.phtml';
+        
+        // Zgłoszenie na stronę główną
+        if ($viewUri === '') {
+            $viewFile = $this->viewsPath . '/index.phtml';
+            
+            // ARCHITEKTONICZNY FALLBACK: Jeśli w projekcie nie ma index.phtml,
+            // ładujemy welcome.phtml (dzięki temu szablon A nigdy nie nadpisze strony głównej PT)
+            if (!file_exists($viewFile)) {
+                $viewFile = $this->viewsPath . '/welcome.phtml';
+            }
+        } else {
+            // Standardowa ścieżka dla podstron (np. /kontakt -> kontakt.phtml)
+            $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
+        }
 
         if (file_exists($viewFile)) {
             return $this->executeHandler($viewFile, $request);
