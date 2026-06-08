@@ -90,7 +90,7 @@ class Database
 	private function _polacz()
 	{
 		//łączy się z bazą
-		$this->oDB=new PDO("mysql:host={$this->host};dbname={$this->baza};charset=utf8mb4", $this->login, $this->haslo);
+		$this->oDB=new \PDO("mysql:host={$this->host};dbname={$this->baza};charset=utf8mb4", $this->login, $this->haslo);
 
 		if(!$this->oDB) $this->error="Nie udało się połączyć z bazą!";
 
