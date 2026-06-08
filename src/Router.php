@@ -96,12 +96,16 @@ class Router
 
     private function executeHandler(mixed $handler, ServerRequestInterface $request): ResponseInterface
     {
+        // 1. Wyciągamy bazę z pamięci globalnej raz na początku
+        global $db;
+
         if (is_callable($handler)) {
             $result = $handler($request);
             if ($result instanceof ResponseInterface) return $result;
             return new Response(200, [], (string)$result);
         }
 
+        // 2. Obsługa plików widoków (.phtml) - dzięki temu widoki widzą zmienną $db
         if (is_string($handler) && file_exists($handler)) {
             ob_start();
             require $handler;
@@ -109,12 +113,19 @@ class Router
             return new Response(200, [], $content);
         }
 
+        // 3. Obsługa kontrolerów i akcji
         if (is_array($handler)) {
             [$controllerClass, $method] = $handler;
-            $controller = new $controllerClass();
-            $result = $controller->$method($request);
-            if ($result instanceof ResponseInterface) return $result;
-            return new Response(200, [], (string)$result);
+            
+            if (class_exists($controllerClass)) {
+                $controller = new $controllerClass();
+                
+                if (method_exists($controller, $method)) {
+                    $result = $controller->$method($request);
+                    if ($result instanceof ResponseInterface) return $result;
+                    return new Response(200, [], (string)$result);
+                }
+            }
         }
 
         return new Response(500, [], '<h1>500 - Invalid Handler</h1>');

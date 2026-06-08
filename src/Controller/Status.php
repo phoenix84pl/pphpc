@@ -1,11 +1,9 @@
 <?php
-// vendor/phoenix84pl/pphpc/src/Controller/Status.php
-
 namespace Phoenix\Core\Controller;
 
 use Nyholm\Psr7\Response;
 
-class Status
+class Status extends Component
 {
     public function ping(): string
     {
