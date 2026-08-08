@@ -65,23 +65,32 @@ class Router
             ]));
         }
 
-        // 3. Obsługa WIDOKÓW (view / lub czysty fallback bez prefiksu dla ładnych URL)
+        // 3. Obsługa WIDOKÓW (z automatyczną detekcją Kontrolera)
         $viewUri = ($typ === 'view') ? implode('/', array_slice($czesci, 1)) : $uri;
         
-        // Zgłoszenie na stronę główną
+        // Zgłoszenie na stronę główną lub podstronę
         if ($viewUri === '') {
+            $viewName = 'index';
             $viewFile = $this->viewsPath . '/index.phtml';
             
-            // ARCHITEKTONICZNY FALLBACK: Jeśli w projekcie nie ma index.phtml,
-            // ładujemy welcome.phtml (dzięki temu szablon A nigdy nie nadpisze strony głównej PT)
             if (!file_exists($viewFile)) {
                 $viewFile = $this->viewsPath . '/welcome.phtml';
             }
         } else {
-            // Standardowa ścieżka dla podstron (np. /kontakt -> kontakt.phtml)
+            $viewName = $viewUri;
             $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
         }
 
+        // A. PRIORYTET: Budujemy poprawny Namespace z uwzględnieniem podkatalogów (np. "panel/ustawienia" -> "\Phoenix\App\Controller\Panel\Ustawienia")
+        $segments = explode('/', $viewName);
+        $formattedSegments = array_map(fn($s) => ucfirst($s), $segments);
+        $controllerClass = "\\Phoenix\\App\\Controller\\" . implode('\\', $formattedSegments);
+
+        if (class_exists($controllerClass) && method_exists($controllerClass, 'index')) {
+            return $this->executeHandler([$controllerClass, 'index'], $request);
+        }
+
+        // B. FALLBACK: Jeśli kontrolera brak, ale istnieje sam widok .phtml — renderujemy widok
         if (file_exists($viewFile)) {
             return $this->executeHandler($viewFile, $request);
         }
