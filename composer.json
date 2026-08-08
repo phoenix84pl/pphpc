@@ -20,5 +20,8 @@
         "psr-4": {
             "Phoenix\\Core\\": "src/"
         }
-    }
+    },
+    "bin": [
+        "bin/update-database-views"
+    ]
 }
