@@ -1,13 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-$autoloadPath = getcwd() . '/vendor/autoload.php';
+$baseDir = getcwd();
+require_once $baseDir . '/vendor/autoload.php';
 
-if (!file_exists($autoloadPath)) {
-    echo "❌ Błąd: Uruchom skrypt z katalogu głównego aplikacji.\n";
-    exit(1);
-}
+// 1. Ładujemy ten sam sprawdzony Bootstrap co na WWW ($db + .env)
+\Phoenix\Core\Bootstrap::init($baseDir);
 
-require_once $autoloadPath;
-
-\Phoenix\Core\Console\UpdateDatabaseViews::run(getcwd());
+// 2. Uruchamiamy aktualizację widoków SQL
+\Phoenix\Core\Console\UpdateDatabaseViews::run($baseDir);
