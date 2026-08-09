@@ -31,9 +31,8 @@ class DbSyncSchema
 
         $passParam = !empty($dbPass) ? sprintf('-p%s', escapeshellarg($dbPass)) : '';
         
-        // Prawidłowa flaga mysqldef wyłączająca usuwanie tabel/widoków: --enable-drop=false
         $dryRunCmd = sprintf(
-            '%s -h %s -u %s %s %s --dry-run --enable-drop=false --file %s 2>&1',
+            '%s -h %s -u %s %s %s --dry-run --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -86,7 +85,7 @@ class DbSyncSchema
         echo "\n🚀 Aplikowanie zmian w strukturze...\n";
 
         $applyCmd = sprintf(
-            '%s -h %s -u %s %s %s --enable-drop=false --file %s 2>&1',
+            '%s -h %s -u %s %s %s --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
