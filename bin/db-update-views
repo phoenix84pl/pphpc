@@ -1,0 +1,8 @@
+#!/usr/bin/env php
+<?php
+
+$baseDir = getcwd();
+require_once $baseDir . '/vendor/autoload.php';
+
+\Phoenix\Core\Bootstrap::init($baseDir);
+\Phoenix\Core\Console\DbUpdateViews::run($baseDir);

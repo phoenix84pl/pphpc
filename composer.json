@@ -22,6 +22,7 @@
         }
     },
     "bin": [
-        "bin/update-database-views"
+        "bin/db-update-views",
+        "bin/db-dump-schema"
     ]
 }

@@ -2,7 +2,7 @@
 
 namespace Phoenix\Core\Console;
 
-class UpdateDatabaseViews
+class DbUpdateViews
 {
     public static function run(string $baseDir): void
     {
