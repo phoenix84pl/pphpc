@@ -41,6 +41,7 @@
 	//20260603  Dodanie obsługi raw, raw(), _raw() (ochrona przez XSS)
 	//20260607	Przejście na Github + Composer + Namespace + zmiana nazwy na Database
 	//20260607  dodanie metody query w ramach kompatybilności ze standardami do obsługi zapytań bezwynikowych typu DROP czy TRUNCATE
+	//20260809  Dodanie metody exec jako aliasu do query
 
 namespace Phoenix\Core;
 class Database
@@ -302,6 +303,12 @@ class Database
 			$this->error = $e->getMessage();
 			return FALSE;
 		}
+	}
+
+	public function exec(string $sql)
+	{
+			//alias query
+		return $this->query($sql);
 	}
 
 	public function select($tabelaLUBsql, $kolumny = NULL, $warunki = NULL)
