@@ -24,6 +24,7 @@
     "bin": [
         "bin/db-update-views",
         "bin/db-dump-schema",
-        "bin/db-dump-data"
+        "bin/db-dump-data",
+        "bin/db-pull-data"
     ]
 }
