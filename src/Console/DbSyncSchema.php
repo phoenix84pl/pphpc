@@ -24,18 +24,16 @@ class DbSyncSchema
             exit(1);
         }
 
-        // Przygotujmy oczyszczoną wersję pliku schema.sql dla mysqldef
         $cleanSchemaFile = self::prepareCleanSchemaFile($schemaFile);
-
-        // Ścieżka do binarki mysqldef
         $mysqldefBin = self::getMysqldefBinary($baseDir);
 
         echo "🔍 Porównywanie struktury w database/schema.sql z bazą '{$dbName}'...\n\n";
 
-        // Step 1: Dry run
         $passParam = !empty($dbPass) ? sprintf('-p%s', escapeshellarg($dbPass)) : '';
+        
+        // Dodana flaga --skip-drop, żeby mysqldef nie próbował usuwać widoków ani obcych tabel
         $dryRunCmd = sprintf(
-            '%s -h %s -u %s %s %s --dry-run --file %s 2>&1',
+            '%s -h %s -u %s %s %s --dry-run --skip-drop --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -48,10 +46,21 @@ class DbSyncSchema
         $returnVar = 0;
         exec($dryRunCmd, $output, $returnVar);
 
-        $diffSql = implode("\n", $output);
+        // Filtrujemy linie dotyczące "Skipped" oraz samej sekcji BEGIN/COMMIT
+        $filteredOutput = array_filter($output, function ($line) {
+            $trimmed = trim($line);
+            if (empty($trimmed)) return false;
+            if (strpos($trimmed, '-- dry run --') !== false) return false;
+            if (strpos($trimmed, 'BEGIN;') !== false) return false;
+            if (strpos($trimmed, 'COMMIT;') !== false) return false;
+            if (strpos($trimmed, '-- Skipped:') !== false) return false;
+            return true;
+        });
 
-        if (strpos($diffSql, 'nothing to apply') !== false || empty(trim($diffSql))) {
-            echo "✅ Struktura bazy danych jest idealnie zgodna z plikiem database/schema.sql!\n";
+        $diffSql = trim(implode("\n", $filteredOutput));
+
+        if (empty($diffSql) || strpos($diffSql, 'nothing to apply') !== false) {
+            echo "✅ Struktura tabel bazy danych jest idealnie zgodna z plikiem database/schema.sql!\n";
             echo "ℹ️ Brak zmian do wdrożenia.\n";
             @unlink($cleanSchemaFile);
             exit(0);
@@ -63,13 +72,6 @@ class DbSyncSchema
         echo $diffSql . "\n";
         echo "--------------------------------------------------\n";
 
-        if (strpos($diffSql, 'DROP TABLE') !== false || strpos($diffSql, 'DROP COLUMN') !== false) {
-            echo "⚠️ UWAGA! Wykryto zapytanie DROP (usuwanie tabeli lub kolumny)!\n";
-            echo "💡 Jeśli zmieniłeś nazwę kolumny/tabeli, dodaj w schema.sql komentarz:\n";
-            echo "   -- @renamed from=stara_nazwa_kolumny\n\n";
-        }
-
-        // Step 2: Confirm
         echo "❓ Czy chcesz zastosować powyższe zmiany w bazie danych? [Y/n]: ";
         $handle = fopen("php://stdin", "r");
         $line = fgets($handle);
@@ -84,7 +86,7 @@ class DbSyncSchema
         echo "\n🚀 Aplikowanie zmian w strukturze...\n";
 
         $applyCmd = sprintf(
-            '%s -h %s -u %s %s %s --file %s 2>&1',
+            '%s -h %s -u %s %s %s --skip-drop --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -105,10 +107,6 @@ class DbSyncSchema
         }
     }
 
-    /**
-     * Oczyszcza plik schema.sql ze zbędnych instrukcji typu DROP TABLE IF EXISTS
-     * oraz komentarzy systemowych MySQL, których mysqldef nie parsuje.
-     */
     private static function prepareCleanSchemaFile(string $originalSchemaFile): string
     {
         $content = file_get_contents($originalSchemaFile);
@@ -116,11 +114,11 @@ class DbSyncSchema
         // Usuń linie DROP TABLE / DROP VIEW
         $content = preg_replace('/^DROP TABLE IF EXISTS.*?;/m', '', $content);
         $content = preg_replace('/^DROP VIEW IF EXISTS.*?;/m', '', $content);
+        $content = preg_replace('/^CREATE VIEW.*?;/s', '', $content);
 
-        // Usuń komentarze systemowe MySQL (np. /*!40101 SET ... */)
+        // Usuń komentarze systemowe MySQL
         $content = preg_replace('/\/\*!.*?\*\//s', '', $content);
 
-        // Zapisz do pliku tymczasowego
         $tmpFile = sys_get_temp_dir() . '/clean_schema_' . md5($originalSchemaFile) . '.sql';
         file_put_contents($tmpFile, $content);
 
@@ -139,7 +137,6 @@ class DbSyncSchema
             return $localBin;
         }
 
-        echo "📦 Nie znaleziono mysqldef. Pobieranie binarki mysqldef z GitHub...\n";
         $binDir = dirname($localBin);
         if (!is_dir($binDir)) {
             @mkdir($binDir, 0755, true);
