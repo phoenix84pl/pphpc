@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+$baseDir = getcwd();
+
+$autoloadPath = $baseDir . '/vendor/autoload.php';
+if (!file_exists($autoloadPath)) {
+    $autoloadPath = __DIR__ . '/../../../autoload.php';
+}
+
+if (!file_exists($autoloadPath)) {
+    echo "❌ Nie znaleziono pliku vendor/autoload.php\n";
+    exit(1);
+}
+
+require_once $autoloadPath;
+
+if (file_exists($baseDir . '/.env')) {
+    if (class_exists('Dotenv\Dotenv')) {
+        $dotenv = \Dotenv\Dotenv::createImmutable($baseDir);
+        $dotenv->safeLoad();
+    }
+}
+
+\Phoenix\Core\Console\DbDumpData::run($baseDir);
