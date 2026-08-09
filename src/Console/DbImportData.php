@@ -22,7 +22,7 @@ class DbImportData
 
         if (!file_exists($localFile) || filesize($localFile) === 0) {
             echo "❌ Błąd: Brak pliku database/data.sql lub plik jest pusty.\n";
-            echo "💡 Najpierw uruchom komendę vendor/bin/db-pull-data\n";
+            echo "💡 Najpierw uruchom komendę vendor/bin/pphpc db:pull\n";
             exit(1);
         }
 
@@ -40,7 +40,7 @@ class DbImportData
         $totalMb = round($totalBytes / (1024 * 1024), 2);
 
         // 2. Analiza stanu lokalnej bazy danych
-        echo "🛡️  Środowisko lokalne potwerdzone (APP_ENV={$appEnv})\n";
+        echo "🛡️  Środowisko lokalne potwierdzone (APP_ENV={$appEnv})\n";
         echo "🔍 Analizowanie stanu lokalnej bazy danych '{$dbName}'...\n";
 
         $tableCount = 0;
@@ -65,21 +65,30 @@ class DbImportData
             }
         } catch (Exception $e) {
             echo "⚠️ Nie udało się połączyć/zanalizować bazy przed importem: " . $e->getMessage() . "\n";
+            exit(1);
         }
 
         echo "--------------------------------------------------\n";
+        
         if ($tableCount === 0) {
-            echo "ℹ️ Stan lokalnej bazy : PUSTA (0 tabel)\n";
-        } else {
-            echo "⚠️ Stan lokalnej bazy : ZAWIERA DANE!\n";
+            echo "❌ BŁĄD STRUKTURY BAZY!\n";
+            echo "🛑 Lokalna baza '{$dbName}' jest całkowicie pusta (0 tabel).\n";
+            echo "💡 Plik data.sql zawiera jedynie dane. Najpierw utwórz strukturę tabel (schema.sql)!\n";
+            exit(1);
+        } elseif ($totalRows === 0) {
+            echo "✅ Stan lokalnej bazy : IDEALNY (Struktura istnieje, 0 rekordów)\n";
             echo "📊 Wykryte tabele     : {$tableCount}\n";
-            echo "🔢 Łączna liczba wierszy: {$totalRows}\n";
+        } else {
+            echo "⚠️ Stan lokalnej bazy : ZAWIERA JUŻ DANE!\n";
+            echo "📊 Wykryte tabele     : {$tableCount}\n";
+            echo "🔢 Łączna liczba wierszy: {$totalRows} (zostaną zastąpione/dopisane)\n";
         }
+        
         echo "📄 Plik do wczytania  : database/data.sql ({$totalMb} MB)\n";
         echo "--------------------------------------------------\n";
 
-        // 3. Pytanie o potwierdzenie operacji z jawnym 'Y'
-        echo "❓ Czy na pewno chcesz zaimportować dane i nadpisać istniejący stan bazy? [Y/n]: ";
+        // 3. Pytanie o potwierdzenie operacji z wielkim 'Y'
+        echo "❓ Czy na pewno chcesz zaimportować dane do lokalnej bazy? [Y/n]: ";
         $handle = fopen("php://stdin", "r");
         $line = fgets($handle);
         $confirmation = trim((string)$line);
