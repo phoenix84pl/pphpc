@@ -14,43 +14,42 @@ class DbUpdateViews
         }
 
         $viewsDir = rtrim($baseDir, '/') . '/database/views';
+
+        if (!is_dir($viewsDir)) {
+            echo "⚠️ Katalog z widokami nie istnieje: {$viewsDir}\n";
+            return;
+        }
+
         $files = glob($viewsDir . '/*.sql');
 
         if (empty($files)) {
-            echo "ℹ️ Brak plików .sql w katalogu {$viewsDir}\n";
-            exit(0);
+            echo "ℹ️ Brak plików .sql w katalogu database/views/\n";
+            return;
         }
-
-        sort($files);
 
         echo "🔄 Aktualizacja widoków bazy danych (SQL)...\n";
         echo "--------------------------------------------------\n";
 
-        $successCount = 0;
-
-        foreach ($files as $filePath) {
-            $fileName = basename($filePath);
-            $sql = file_get_contents($filePath);
+        $count = 0;
+        foreach ($files as $file) {
+            $filename = basename($file);
+            $sql = file_get_contents($file);
 
             if (empty(trim($sql))) {
-                echo "⚠️  [POMINIĘTO] {$fileName} (pusty plik)\n";
                 continue;
             }
 
             try {
                 $db->exec($sql);
-                echo "✅ [OK] {$fileName}\n";
-                $successCount++;
+                echo "  ✅ Pomyślnie wdrożono widok: {$filename}\n";
+                $count++;
             } catch (\PDOException $e) {
-                echo "❌ [BŁĄD] {$fileName}\n";
-                echo "   Komunikat: " . $e->getMessage() . "\n";
-                echo "--------------------------------------------------\n";
-                echo "⛔ Wykonywanie przerwane ze względu na błąd w strukturze SQL.\n";
-                exit(1);
+                echo "  ❌ Błąd w pliku {$filename}:\n";
+                echo "     " . $e->getMessage() . "\n";
             }
         }
 
         echo "--------------------------------------------------\n";
-        echo "🚀 Gotowe! Pomyślnie wdrożono {$successCount} widoków bazy danych.\n";
+        echo "✅ Zakończono! Wdrożono widoków: {$count}\n";
     }
 }
