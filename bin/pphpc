@@ -26,6 +26,7 @@ if (file_exists($baseDir . '/.env')) {
 $commands = [
     'db:pull'         => \Phoenix\Core\Console\DbPullData::class,
     'db:import'       => \Phoenix\Core\Console\DbImportData::class,
+    'db:sync-schema'  => \Phoenix\Core\Console\DbSyncSchema::class,
     'db:dump-data'    => \Phoenix\Core\Console\DbDumpData::class,
     'db:dump-schema'  => \Phoenix\Core\Console\DbDumpSchema::class,
     'db:update-views' => \Phoenix\Core\Console\DbUpdateViews::class,
@@ -39,6 +40,7 @@ if ($action === 'help' || $action === '--help' || !isset($commands[$action])) {
     echo "Dostępne komendy bazy danych:\n";
     echo "  pphpc db:pull         - Pobiera zrzut data.sql z serwera VPS do database/\n";
     echo "  pphpc db:import       - Importuje database/data.sql do lokalnej bazy danych\n";
+    echo "  pphpc db:sync-schema  - Bezpieczna synchronizacja struktury schema.sql z bazą\n";
     echo "  pphpc db:dump-data    - Tworzy lokalny zrzut samych danych (data.sql)\n";
     echo "  pphpc db:dump-schema  - Tworzy lokalny zrzut struktury (schema.sql)\n";
     echo "  pphpc db:update-views - Aktualizuje widoki w bazie danych\n";
