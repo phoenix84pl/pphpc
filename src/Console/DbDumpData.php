@@ -25,6 +25,8 @@ class DbDumpData
 
         echo "📦 Tworzenie zrzutu samych danych z bazy '{$dbName}'...\n";
 
+        $startTime = microtime(true);
+
         $cmd = sprintf(
             'mysqldump --no-create-info --single-transaction --skip-triggers -h %s -u %s %s %s > %s 2>&1',
             escapeshellarg($dbHost),
@@ -38,10 +40,23 @@ class DbDumpData
         $output = [];
         exec($cmd, $output, $returnVar);
 
+        $endTime = microtime(true);
+        $duration = round($endTime - $startTime, 2);
+
         if ($returnVar === 0 && file_exists($outputFile)) {
-            $filesize = round(filesize($outputFile) / 1024, 2);
+            $bytes = filesize($outputFile);
+            $mbSize = round($bytes / (1024 * 1024), 2);
+            
+            // Obliczanie prędkości zapisu (MB/s)
+            $speed = $duration > 0 ? round($mbSize / $duration, 2) : $mbSize;
+
             echo "✅ Zrzut danych zakończony sukcesem!\n";
-            echo "📄 Plik wyjściowy: database/data.sql ({$filesize} KB)\n";
+            echo "--------------------------------------------------\n";
+            echo "📄 Plik wyjściowy : database/data.sql\n";
+            echo "📊 Rozmiar pliku  : {$mbSize} MB ({$bytes} B)\n";
+            echo "⏱️ Czas trwania   : {$duration} s\n";
+            echo "⚡ Średnia prędkość: {$speed} MB/s\n";
+            echo "--------------------------------------------------\n";
         } else {
             echo "❌ Błąd podczas wykonywania mysqldump:\n";
             echo implode("\n", $output) . "\n";
