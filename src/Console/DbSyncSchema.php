@@ -31,9 +31,9 @@ class DbSyncSchema
 
         $passParam = !empty($dbPass) ? sprintf('-p%s', escapeshellarg($dbPass)) : '';
         
-        // Dodana flaga --skip-drop, żeby mysqldef nie próbował usuwać widoków ani obcych tabel
+        // Prawidłowa flaga mysqldef wyłączająca usuwanie tabel/widoków: --enable-drop=false
         $dryRunCmd = sprintf(
-            '%s -h %s -u %s %s %s --dry-run --skip-drop --file %s 2>&1',
+            '%s -h %s -u %s %s %s --dry-run --enable-drop=false --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -46,7 +46,7 @@ class DbSyncSchema
         $returnVar = 0;
         exec($dryRunCmd, $output, $returnVar);
 
-        // Filtrujemy linie dotyczące "Skipped" oraz samej sekcji BEGIN/COMMIT
+        // Odfiltrowujemy nagłówki dry-run i pominięte operacje widoków/tabel
         $filteredOutput = array_filter($output, function ($line) {
             $trimmed = trim($line);
             if (empty($trimmed)) return false;
@@ -86,7 +86,7 @@ class DbSyncSchema
         echo "\n🚀 Aplikowanie zmian w strukturze...\n";
 
         $applyCmd = sprintf(
-            '%s -h %s -u %s %s %s --skip-drop --file %s 2>&1',
+            '%s -h %s -u %s %s %s --enable-drop=false --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -111,7 +111,7 @@ class DbSyncSchema
     {
         $content = file_get_contents($originalSchemaFile);
 
-        // Usuń linie DROP TABLE / DROP VIEW
+        // Usuń linie DROP TABLE / DROP VIEW oraz instrukcje CREATE VIEW
         $content = preg_replace('/^DROP TABLE IF EXISTS.*?;/m', '', $content);
         $content = preg_replace('/^DROP VIEW IF EXISTS.*?;/m', '', $content);
         $content = preg_replace('/^CREATE VIEW.*?;/s', '', $content);
