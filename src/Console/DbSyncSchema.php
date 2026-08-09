@@ -24,12 +24,15 @@ class DbSyncSchema
             exit(1);
         }
 
+        // Przygotujmy oczyszczoną wersję pliku schema.sql dla mysqldef
+        $cleanSchemaFile = self::prepareCleanSchemaFile($schemaFile);
+
         // Ścieżka do binarki mysqldef
         $mysqldefBin = self::getMysqldefBinary($baseDir);
 
         echo "🔍 Porównywanie struktury w database/schema.sql z bazą '{$dbName}'...\n\n";
 
-        // Step 1: Dry run (--file flag added)
+        // Step 1: Dry run
         $passParam = !empty($dbPass) ? sprintf('-p%s', escapeshellarg($dbPass)) : '';
         $dryRunCmd = sprintf(
             '%s -h %s -u %s %s %s --dry-run --file %s 2>&1',
@@ -38,7 +41,7 @@ class DbSyncSchema
             escapeshellarg($dbUser),
             $passParam,
             escapeshellarg($dbName),
-            escapeshellarg($schemaFile)
+            escapeshellarg($cleanSchemaFile)
         );
 
         $output = [];
@@ -50,6 +53,7 @@ class DbSyncSchema
         if (strpos($diffSql, 'nothing to apply') !== false || empty(trim($diffSql))) {
             echo "✅ Struktura bazy danych jest idealnie zgodna z plikiem database/schema.sql!\n";
             echo "ℹ️ Brak zmian do wdrożenia.\n";
+            @unlink($cleanSchemaFile);
             exit(0);
         }
 
@@ -73,6 +77,7 @@ class DbSyncSchema
 
         if ($confirmation !== 'Y' && $confirmation !== 'YES') {
             echo "❌ Synchronizacja struktury została anulowana.\n";
+            @unlink($cleanSchemaFile);
             exit(0);
         }
 
@@ -85,10 +90,12 @@ class DbSyncSchema
             escapeshellarg($dbUser),
             $passParam,
             escapeshellarg($dbName),
-            escapeshellarg($schemaFile)
+            escapeshellarg($cleanSchemaFile)
         );
 
         system($applyCmd, $applyReturn);
+
+        @unlink($cleanSchemaFile);
 
         if ($applyReturn === 0) {
             echo "\n✅ Struktura bazy danych została pomyślnie zaktualizowana bez utraty danych!\n";
@@ -98,9 +105,30 @@ class DbSyncSchema
         }
     }
 
+    /**
+     * Oczyszcza plik schema.sql ze zbędnych instrukcji typu DROP TABLE IF EXISTS
+     * oraz komentarzy systemowych MySQL, których mysqldef nie parsuje.
+     */
+    private static function prepareCleanSchemaFile(string $originalSchemaFile): string
+    {
+        $content = file_get_contents($originalSchemaFile);
+
+        // Usuń linie DROP TABLE / DROP VIEW
+        $content = preg_replace('/^DROP TABLE IF EXISTS.*?;/m', '', $content);
+        $content = preg_replace('/^DROP VIEW IF EXISTS.*?;/m', '', $content);
+
+        // Usuń komentarze systemowe MySQL (np. /*!40101 SET ... */)
+        $content = preg_replace('/\/\*!.*?\*\//s', '', $content);
+
+        // Zapisz do pliku tymczasowego
+        $tmpFile = sys_get_temp_dir() . '/clean_schema_' . md5($originalSchemaFile) . '.sql';
+        file_put_contents($tmpFile, $content);
+
+        return $tmpFile;
+    }
+
     private static function getMysqldefBinary(string $baseDir): string
     {
-        // Sprawdź czy jest w PATH
         $globalPath = shell_exec('which mysqldef 2>/dev/null');
         if (!empty(trim((string)$globalPath))) {
             return trim((string)$globalPath);
@@ -111,7 +139,6 @@ class DbSyncSchema
             return $localBin;
         }
 
-        // Pobranie mysqldef jeśli nie istnieje
         echo "📦 Nie znaleziono mysqldef. Pobieranie binarki mysqldef z GitHub...\n";
         $binDir = dirname($localBin);
         if (!is_dir($binDir)) {
