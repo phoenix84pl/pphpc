@@ -23,6 +23,18 @@ class DbDumpSchema
             exit(1);
         }
 
+        // 1. Pobieramy listę samych widoków, aby wykluczyć je z pliku schema.sql
+        $views = $db->query("
+            SELECT TABLE_NAME 
+            FROM information_schema.TABLES 
+            WHERE TABLE_SCHEMA = '$dbname' AND TABLE_TYPE = 'VIEW'
+        ")->fetchAll(\PDO::FETCH_COLUMN);
+
+        $ignoreViewsFlags = '';
+        foreach ($views as $view) {
+            $ignoreViewsFlags .= ' --ignore-table=' . escapeshellarg($dbname . '.' . $view);
+        }
+
         $targetDir = rtrim($baseDir, '/') . '/database';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
@@ -30,11 +42,12 @@ class DbDumpSchema
 
         $outputFile = $targetDir . '/schema.sql';
 
-        echo "🔄 Zrzucanie struktury bazy danych (bez danych)...\n";
+        echo "🔄 Zrzucanie struktury samych tabel bazy danych (bez danych i widoków)...\n";
 
-        // mysqldump --no-data wyciąga samą strukturę tabel i widoków
+        // 2. mysqldump bez danych, bez komentarzy, bez widoków
         $command = sprintf(
-            'mysqldump --no-data --skip-comments --skip-add-locks -h %s -u %s %s %s > %s 2>&1',
+            'mysqldump --no-data --skip-comments --skip-add-locks%s -h %s -u %s %s %s > %s 2>&1',
+            $ignoreViewsFlags,
             escapeshellarg($host),
             escapeshellarg($user),
             !empty($pass) ? '-p' . escapeshellarg($pass) : '',
@@ -50,6 +63,6 @@ class DbDumpSchema
             exit(1);
         }
 
-        echo "✅ Pomyślnie wygenerowano plik: database/schema.sql\n";
+        echo "✅ Pomyślnie wygenerowano plik: database/schema.sql (wyłącznie tabele)\n";
     }
 }
