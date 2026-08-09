@@ -1,0 +1,56 @@
+#!/usr/bin/env php
+<?php
+
+$baseDir = getcwd();
+
+$autoloadPath = $baseDir . '/vendor/autoload.php';
+if (!file_exists($autoloadPath)) {
+    $autoloadPath = __DIR__ . '/../../../autoload.php';
+}
+
+if (!file_exists($autoloadPath)) {
+    echo "❌ Błąd: Nie znaleziono pliku vendor/autoload.php\n";
+    exit(1);
+}
+
+require_once $autoloadPath;
+
+if (file_exists($baseDir . '/.env')) {
+    if (class_exists('Dotenv\Dotenv')) {
+        $dotenv = \Dotenv\Dotenv::createImmutable($baseDir);
+        $dotenv->safeLoad();
+    }
+}
+
+// Rejestr dostępnych komend
+$commands = [
+    'db:pull'         => \Phoenix\Core\Console\DbPullData::class,
+    'db:import'       => \Phoenix\Core\Console\DbImportData::class,
+    'db:dump-data'    => \Phoenix\Core\Console\DbDumpData::class,
+    'db:dump-schema'  => \Phoenix\Core\Console\DbDumpSchema::class,
+    'db:update-views' => \Phoenix\Core\Console\DbUpdateViews::class,
+];
+
+$action = $argv[1] ?? 'help';
+
+if ($action === 'help' || $action === '--help' || !isset($commands[$action])) {
+    echo "🔥 Phoenix PHP Core CLI (PPHPC)\n";
+    echo "--------------------------------------------------\n";
+    echo "Dostępne komendy bazy danych:\n";
+    echo "  pphpc db:pull         - Pobiera zrzut data.sql z serwera VPS do database/\n";
+    echo "  pphpc db:import       - Importuje database/data.sql do lokalnej bazy danych\n";
+    echo "  pphpc db:dump-data    - Tworzy lokalny zrzut samych danych (data.sql)\n";
+    echo "  pphpc db:dump-schema  - Tworzy lokalny zrzut struktury (schema.sql)\n";
+    echo "  pphpc db:update-views - Aktualizuje widoki w bazie danych\n";
+    echo "--------------------------------------------------\n";
+    
+    if ($action !== 'help' && $action !== '--help') {
+        echo "❌ Nieznana komenda: '{$action}'\n";
+        exit(1);
+    }
+    exit(0);
+}
+
+// Uruchomienie wybranej komendy
+$commandClass = $commands[$action];
+$commandClass::run($baseDir);
