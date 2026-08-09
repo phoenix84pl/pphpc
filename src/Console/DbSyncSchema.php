@@ -29,10 +29,10 @@ class DbSyncSchema
 
         echo "🔍 Porównywanie struktury w database/schema.sql z bazą '{$dbName}'...\n\n";
 
-        // Step 1: Dry run
+        // Step 1: Dry run (--file flag added)
         $passParam = !empty($dbPass) ? sprintf('-p%s', escapeshellarg($dbPass)) : '';
         $dryRunCmd = sprintf(
-            '%s -h %s -u %s %s %s --dry-run %s 2>&1',
+            '%s -h %s -u %s %s %s --dry-run --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -79,7 +79,7 @@ class DbSyncSchema
         echo "\n🚀 Aplikowanie zmian w strukturze...\n";
 
         $applyCmd = sprintf(
-            '%s -h %s -u %s %s %s %s 2>&1',
+            '%s -h %s -u %s %s %s --file %s 2>&1',
             escapeshellarg($mysqldefBin),
             escapeshellarg($dbHost),
             escapeshellarg($dbUser),
@@ -119,7 +119,6 @@ class DbSyncSchema
         }
 
         $arch = php_uname('m');
-        $os = strtolower(PHP_OS);
 
         $downloadUrl = "https://github.com/sqldef/sqldef/releases/latest/download/mysqldef_linux_amd64.tar.gz";
         if (strpos($arch, 'arm') !== false || strpos($arch, 'aarch64') !== false) {
