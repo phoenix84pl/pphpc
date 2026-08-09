@@ -11,8 +11,6 @@ class Bootstrap
      */
     public static function init(string $baseDir): void
     {
-        global $db;
-
         // 1. Ładowanie zmiennych środowiskowych z .env
         if (file_exists($baseDir . '/.env')) {
             try {
@@ -24,21 +22,24 @@ class Bootstrap
         }
 
         // 2. Inicjalizacja połączenia z bazą danych ($db)
-        if (!$db && class_exists('\Phoenix\Core\Database')) {
+        if (!isset($GLOBALS['db']) && class_exists('\Phoenix\Core\Database')) {
             try {
                 if (isset($_ENV['DB_HOST']) && $_ENV['DB_HOST'] !== '') {
-                    $db = new Database(
+                    $GLOBALS['db'] = new Database(
                         $_ENV['DB_HOST'],
                         $_ENV['DB_USER'],
                         $_ENV['DB_PASS'],
                         $_ENV['DB_NAME']
                     );
                 } else {
-                    $db = new Database();
+                    $GLOBALS['db'] = new Database();
                 }
             } catch (\Throwable $e) {
-                $db = $e;
+                $GLOBALS['db'] = $e;
             }
         }
+
+        // Tworzymy referencję dla zmiennej globalnej $db
+        $GLOBALS['db'] = $GLOBALS['db'] ?? null;
     }
 }
