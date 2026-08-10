@@ -42,6 +42,7 @@
 	//20260607	Przejście na Github + Composer + Namespace + zmiana nazwy na Database
 	//20260607  dodanie metody query w ramach kompatybilności ze standardami do obsługi zapytań bezwynikowych typu DROP czy TRUNCATE
 	//20260809  Dodanie metody exec jako aliasu do query
+	//20260810  Usunięcie nieużywanych (zakomentowanych od dawna) metod
 
 namespace Phoenix\Core;
 class Database
@@ -50,6 +51,7 @@ class Database
 	private	$host;
 	private	$login;
 	private	$haslo;
+	private $_parametry = [];
 	private $_raw = FALSE;
 
 	public	$baza;
@@ -63,37 +65,34 @@ class Database
 	public	$distinct=NULL;		//przechowanie DISTINCT do następnego zapytania
 	public	$set=[];			//lista kolumn typu set, żeby silnik wiedział, że dane ma zwrócić/zapisać jako array, a nie tekst
 
-	public	function __construct($host=NULL, $login=NULL, $haslo=NULL, $baza=NULL)
+	// W pliku Database.php:
+	public function __construct($host = null, $login = null, $haslo = null, $baza = null)
 	{
-		if ($host === NULL) return $this;	//brak danych nie wywala całej strony, po prostu zwraca pusty obiekt
-
-			//ustawia dane połączenia i je wywołuje
-		if(is_array($host))
-		{
-			$this->host=$host['host'];
-			$this->login=$host['login'];
-			$this->haslo=$host['haslo'];
-			$this->baza=$host['baza'];
-		}
-		else
-		{
-			$this->host=$host;
-			$this->login=$login;
-			$this->haslo=$haslo;
-			$this->baza=$baza;
+		if (is_array($host)) {
+			$this->host  = $host['host']  ?? null;
+			$this->login = $host['login'] ?? null;
+			$this->haslo = $haslo['haslo'] ?? null;
+			$this->baza  = $host['baza']  ?? null;
+		} else {
+			$this->host  = $host  ?? $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? null;
+			$this->login = $login ?? $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? null;
+			$this->haslo = $haslo ?? $_ENV['DB_PASS'] ?? $_SERVER['DB_PASS'] ?? null;
+			$this->baza  = $baza  ?? $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? null;
 		}
 
-		if((!empty($this->host)) && (!empty($this->login)) && (!empty($this->haslo))) $this->_polacz();
-		
-		return $this;
+		if (!empty($this->host) && !empty($this->login) && !empty($this->haslo)) {
+			$this->_polacz();
+		}
 	}
 
 	private function _polacz()
 	{
-		//łączy się z bazą
-		$this->oDB=new \PDO("mysql:host={$this->host};dbname={$this->baza};charset=utf8mb4", $this->login, $this->haslo);
-
-		if(!$this->oDB) $this->error="Nie udało się połączyć z bazą!";
+		try {
+			$this->oDB = new \PDO("mysql:host={$this->host};dbname={$this->baza};charset=utf8mb4", $this->login, $this->haslo);
+		} catch (\PDOException $e) {
+			$this->error = "Nie udało się połączyć z bazą: " . $e->getMessage();
+			$this->oDB = null;
+		}
 
 		return $this;
 	}
@@ -151,7 +150,7 @@ class Database
 			$this->error = ($info[0] !== '00000') ? var_export($info, true) : null;
 
 			$this->sql = $this->_debug_sql($this->sql, $this->_parametry);
-		} catch (PDOException $e) {
+		} catch (\PDOException $e) {
 			echo "PDO ERROR: \"{$e->getMessage()}\".\nSQL:\"{$this->sql}\"";
 			return FALSE;
 		}
@@ -195,8 +194,7 @@ class Database
 
 	public	function colNum($colNum)
 	{
-		//!!!do wywalenia, bo używana tylko w starych metodach
-			//funkcja ustawia colNum do wykonania
+			//funkcja ustawia colNum do wykonania (zwracanie po numerach kolumn, a nie po nazwach kolumn)
 		$this->colNum=$colNum;
 		
 		return $this;
@@ -437,13 +435,6 @@ class Database
         return $this->_raw($wynik);
     }
 
-/*
-	public	function rekordDodaj($tabela, array $dane)
-	{
-		echo "DEPRECATED: rekordDodaj()";
-		return $this->rekord_dodaj($dane, $tabela);
-	}
-*/
 	public function insert($tabela, array $dane)
 	{
 		$kolumny = $wartosci = $insert = [];
@@ -502,52 +493,7 @@ class Database
 
 		return (bool)$wynik;
 	}
-/*
-	public function rekord_dodaj(array $dane, $tabela)
-	{
-		//nakladka na insert
-		echo "DEPRECATED: rekord_dodaj()";
-		return $this->insert($tabela, $dane);
-	}
 
-	public	function dodaj_rekord(array $dane, $tabela)
-	{
-		//nakladka na insert
-		echo "DEPRECATED: dodaj_rekord()";
-		return $this->insert($tabela, $dane);
-	}
-
-	public function zeruj_rekord($id, $tabela)
-	{
-		echo "DEPRECATED: zeruj_rekord()";
-		$arr_kolumny = $this->kolumny($tabela);
-
-//		echo "$tabela: <pre>";
-//		var_dump($arr_kolumny);
-//		echo '</pre>';
-
-		$arr_dane = array();
-		$primary = array_search('PRI', $arr_kolumny['Key']);
-		$primary = $arr_kolumny['Field'][$primary];
-//		echo "primary: $primary";
-		foreach($arr_kolumny['Field'] as $n0 => $nazwa)
-		{
-			if($arr_kolumny['Key'][$n0] !== 'PRI')
-			{
-				if($arr_kolumny['Null'][$n0] == 'YES')
-					$arr_dane[$nazwa] = NULL;
-				elseif($arr_kolumny['Key'][$n0] == 'UNI')
-					$arr_dane[$nazwa] = $id;
-				else
-					$arr_dane[$nazwa] = (strpos('int',$arr_dane['Type'][$n0]) !== false)? 0 : '';
-			}
-		}
-//		echo "kolumny: <pre>";
-//		var_dump($arr_dane);
-//		echo '</pre>';
-		return $this->aktualizuj($arr_dane, "WHERE $primary = '$id' ", $tabela);
-	}
-*/
 	public function update(string $tabela, array $dane, $warunki = []): bool
 	{
 		$set_placeholders = [];
@@ -584,119 +530,6 @@ class Database
 
 		return (bool)$wynik;
 	}
-/*
-	public function aktualizuj(array $dane, $warunki, $tabela)
-	{
-		echo "DEPRECATED: aktualizuj()";
-		$set_placeholders = $set_params = [];
-
-		foreach($dane as $klucz => $wartosc) {
-			if (in_array($klucz, $this->set) && is_array($wartosc)) {
-				$wartosc = implode(',', array_map('trim', array_unique($wartosc)));
-			}
-			$set_placeholders[] = "`$klucz`=?";
-			$set_params[] = $wartosc;
-		}
-
-		$where = $this->_where($warunki);
-		$params = array_merge($set_params, $where['parametry']);
-
-		$sql = "UPDATE `{$this->baza}`.`{$this->prefix}$tabela` SET " . implode(', ', $set_placeholders);
-		if ($where['bezWhere'])        $sql .= ' ' . $where['sql'];
-		elseif (!empty($where['sql'])) $sql .= ' WHERE ' . $where['sql'];
-
-		$stmt            = $this->oDB->prepare($sql);
-		$wynik           = $stmt->execute($params);
-		$this->sql       = $this->_debug_sql($sql, $params);
-		$info            = $stmt->errorInfo();
-		$this->error     = ($info[0] !== '00000') ? var_export($info, true) : null;
-		$this->id		 = $this->oDB->lastInsertId();
-
-		return $wynik;
-	}
-
-	public	function bezposrednie($sql)
-	{
-		echo "DEPRECATED: bezposrednie()";
-		return $this->sql($sql)->_pobierzStare();
-	}
-
-	public	function komorka ($kolumna, $warunki, $tabela)
-	{
-		echo "DEPRECATED: komorka()";
-		$sql="SELECT `$kolumna` FROM `{$this->prefix}$tabela` $warunki;";
-		return $this->komorka_bezposrednie($sql);
-	}
-
-	public	function komorka_bezposrednie($sql)
-	{
-		echo "DEPRECATED: komorka_bezposrednie()";
-		$wynik=NULL;
-		$efekt=$this->sql($sql)->colNum(TRUE)->_pobierzStare();
-
-		if($efekt==FALSE) return FALSE;
-		else foreach($efekt as $wartosc) if($wynik==NULL) $wynik=$wartosc[0];		//w praktyce przekazuje tylko popjedyncza $kolumna z pierwszego wiersza
-
-		return $wynik;
-	}
-
-
-	public	function tabela($l_kolumny, $warunki, $tabela)
-	{
-			//z jakiegos powodu nie ma w oDB->sql tego querystringa
-
-		echo "DEPRECATED: tabela()";
-		//tworzenie zapytania
-		if(is_array($l_kolumny))
-		{
-			foreach ($l_kolumny as $klucz => $wartosc) $l_kolumny[$klucz] = "`$wartosc`";
-			$kolumny = implode(', ', $l_kolumny);
-		}
-		else $kolumny=$l_kolumny;	//np. * (gwiazdka)
-
-		$distinct=$this->distinct==TRUE?'DISTINCT':'';
-		$this->sql="SELECT $distinct $kolumny FROM `{$this->prefix}$tabela` $warunki;";
-		$this->distinct=NULL;
-
-		$wynik=$this->_pobierzStare();
-				
-		return $wynik;
-	}
-	
-	public	function tabela_odwroc(array $dane)
-	{
-		//metoda odwraca dane w tabeli xy→yx
-
-		echo "DEPRECATED: tabela_odwroc()";
-		
-		$wynik=NULL;		
-		foreach($dane as $id=>$wiersz)
-		{
-			foreach($wiersz as $kolumna=>$wartosc)
-			{
-				$wynik[$kolumna][$id]=$wartosc;
-			}
-		}
-		
-		return $wynik;
-	}
-
-	public	function tabela_bezposrednie($sql)
-	{
-		echo "DEPRECATED: tabela_bezposrednie()";
-		//wykonanie zapytania
-		return $this->sql($sql)->_pobierzStare();
-	}
-*/
-	public	function kolumna($kolumna, $warunki, $tabela)
-	{
-		echo "czy na pewno używana?!?";
-		$dane=$this->tabela('`'.$kolumna.'`', $warunki, $tabela);
-		$wynik=NULL;
-		if(!empty($dane)) foreach($dane as $klucz=>$wartosc) $wynik[$klucz]=$wartosc[$kolumna];
-
-		return $wynik;
-	}
 
 	public function klucz($tabela, $klucze, $wartosci, $warunki = [])
 	{
@@ -713,37 +546,7 @@ class Database
 		foreach ($efekt as $wartosc) $wynik[$wartosc[0]] = $wartosc[1];
 		return $wynik;
 	}
-/*
-	public	function kolumna_klucz($klucze, $wartosci, $warunki, $tabela)
-	{
-		echo "DEPRECATED: kolumna_klucz()";
-		//tworzenie zapytania
-		$this->sql="SELECT `$klucze`, `$wartosci` FROM `{$this->prefix}$tabela` $warunki;";
 
-		$wynik=NULL;
-
-		$efekt=$this->colNum(TRUE)->_pobierzStare();
-		if(isset($efekt)) foreach($efekt as $klucz=>$wartosc) $wynik[$wartosc[0]]=$wartosc[1];
-
-		return $wynik;
-	}
-
-	public	function kolumna_operacja($operacja, $kolumna, $warunki, $tabela)
-	{
-		echo "DEPRECATED: kolumna_operacja";
-		
-		//tworzenie zapytania
-		$this->sql="SELECT $operacja(`$kolumna`) as `$kolumna` FROM `{$this->prefix}$tabela` $warunki;";
-
-		$wynik=NULL;
-		$efekt=$this->_pobierzStare();
-
-		if($efekt==false) return false;
-		else foreach($efekt as $klucz=>$wartosc) if($wynik==NULL) $wynik=$wartosc[$kolumna];		//w praktyce przekazuje tylko popjedyncza $kolumna z pierwszego wiersza
-
-		return $wynik;
-	}
-	*/
 	public function operacja($tabela, $operacja, $kolumna, $warunki = [])
 	{
 		$where = $this->_where($warunki);
@@ -758,48 +561,6 @@ class Database
 		return $wynik;
 	}
 
-/*
-	public	function lista_bezposrednie($sql)
-	{
-		echo "DEPRECATED: lista_bezposrednie()";
-		return $this->kolumna_bezposrednie($sql);
-	}
-
-	public function wiersz($l_kolumny, $warunki, $tabela)
-	{
-		echo "DEPRECATED: wiersz()";
-		// tworzenie zapytania
-		if(is_array($l_kolumny))
-		{
-			foreach ($l_kolumny as $klucz => $wartosc) $l_kolumny[$klucz] = "`$wartosc`";
-			$kolumny = implode(',', $l_kolumny);
-		}
-		else $kolumny = $l_kolumny;
-
-		if(!strpos($warunki, 'LIMIT')) $warunki .= ' LIMIT 1';
-
-		$this->sql = "SELECT $kolumny FROM `{$this->prefix}$tabela` $warunki;";
-
-		$efekt = $this->_pobierzStare();  
-		$wynik = NULL;
-		if(!empty($efekt)) foreach($efekt as $klucz => $wartosc) $wynik = $wartosc;
-		else $wynik = NULL;
-
-		return $wynik;
-	}
-
-
-	public	function wiersz_bezposrednie($sql)
-	{
-		echo "DEPRECATED: wiersz_bezposrednie()";
-		//wykonanie zapytania
-		$efekt=$this->sql($sql)->_pobierzStare();
-		$wynik=NULL;
-		if(!empty($efekt)) foreach($efekt as $wartosc) $wynik=$wartosc;
-
-		return $wynik;
-	}
-*/
 	public function delete($tabela, $warunki = [])
 	{
 		$where  = $this->_where($warunki);
@@ -817,59 +578,4 @@ class Database
 
 		return (bool)$wynik;
 	}
-/*
-	public	function usun_rekord($warunki, $tabela)
-	{
-		echo "DEPRECATED usun_rekord()";
-
-		//tworzenie zapytania
-		$db=$this->oDB->prepare("DELETE FROM `{$this->baza}`.`{$this->prefix}$tabela` $warunki;");
-
-		//wykonanie zapytania
-		$wynik=$db->execute();
-		$this->sql=$db->queryString;
-
-		return $wynik;
-	}
-
-	public	function rekordUsun($tabela, $warunki)
-	{
-		echo "DEPRECATED rekordUsun()";
-		return $this->usun_rekord($warunki, $tabela);
-	}
-	
-	public	function rekord_usun($warunki, $tabela)
-	{
-		echo "DEPRECATED rekord_Usun()";
-		return $this->usun_rekord($warunki, $tabela);
-	}
-
-	public	function kolumna_bezposrednie($sql)
-	{
-		echo "DEPRECATED: kolumna_bezposrednie()";
-		//wykonanie zapytania
-		
-		$efekt=$this->sql($sql)->colNum(TRUE)->_pobierzStare();
-		$wynik=NULL;
-		if(!empty($efekt)) foreach($efekt as $klucz=>$wartosc) $wynik[$klucz]=$efekt[$klucz][0];	//w praktyce przekazuje tylko pierwsza kolumne
-
-		return $wynik;
-	}
-	public	function kolumna_klucz_bezposrednie($sql)
-	{
-		echo "DEPRECATED: kolumna_klucz_bezposrednie()";
-		$efekt=$this->sql($sql)->_pobierzStare();
-		
-		$wynik=NULL;
-		foreach($efekt as $nr=>$dWiersz)
-		{
-			$klucze=array_keys($dWiersz);
-			$wynik[$dWiersz[$klucze[0]]]=$dWiersz[$klucze[1]];	//w praktyce przekazuje tylko pierwsza kolumne
-		}
-
-		return $wynik;
-	}
-*/
 }
-
-?>

@@ -6,40 +6,30 @@ use Dotenv\Dotenv;
 
 class Bootstrap
 {
-    /**
-     * Inicjalizuje środowisko aplikacji (Autoload, .env, Baza danych)
-     */
     public static function init(string $baseDir): void
     {
-        // 1. Ładowanie zmiennych środowiskowych z .env
+        // 1. Inicjalizacja sesji
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // 2. Ładowanie zmiennych środowiskowych (.env)
         if (file_exists($baseDir . '/.env')) {
             try {
                 $dotenv = Dotenv::createImmutable($baseDir);
                 $dotenv->load();
             } catch (\Throwable $e) {
-                // Gdy brak .env lub wystąpił błąd, aplikacja idzie dalej
+                // Gdy brak .env, aplikacja idzie dalej
             }
         }
 
-        // 2. Inicjalizacja połączenia z bazą danych ($db)
+        // 3. Domyślna instancja bazy
         if (!isset($GLOBALS['db']) && class_exists('\Phoenix\Core\Database')) {
             try {
-                if (isset($_ENV['DB_HOST']) && $_ENV['DB_HOST'] !== '') {
-                    $GLOBALS['db'] = new Database(
-                        $_ENV['DB_HOST'],
-                        $_ENV['DB_USER'],
-                        $_ENV['DB_PASS'],
-                        $_ENV['DB_NAME']
-                    );
-                } else {
-                    $GLOBALS['db'] = new Database();
-                }
+                $GLOBALS['db'] = new Database();
             } catch (\Throwable $e) {
-                $GLOBALS['db'] = $e;
+                $GLOBALS['db'] = null;
             }
         }
-
-        // Tworzymy referencję dla zmiennej globalnej $db
-        $GLOBALS['db'] = $GLOBALS['db'] ?? null;
     }
 }
