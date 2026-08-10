@@ -84,7 +84,7 @@ class Router
         // A. PRIORYTET: Budujemy poprawny Namespace z uwzględnieniem podkatalogów (np. "panel/ustawienia" -> "\Phoenix\App\Controller\Panel\Ustawienia")
         $segments = explode('/', $viewName);
         $formattedSegments = array_map(fn($s) => ucfirst($s), $segments);
-        $controllerClass = "\\Phoenix\\App\\Controller\\" . implode('\\', $formattedSegments);
+        $controllerClass = "\\Phoenix\\App\\Controller\\" . implode('\\', $formattedSegments) . "Controller";
 
         if (class_exists($controllerClass) && method_exists($controllerClass, 'index')) {
             return $this->executeHandler([$controllerClass, 'index'], $request);
