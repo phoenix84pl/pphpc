@@ -1,5 +1,7 @@
 <?php
 
+namespace Phoenix\Core\Library;
+
 /* Historia
 
 20200412	+array2int, +int2array
@@ -14,7 +16,6 @@
 20260321	+round()
 
 */
-namespace Phoenix\Core\Library;
 
 class Uzytki
 {
@@ -245,7 +246,7 @@ class Uzytki
 
 	public static function selectGeneruj($id=NULL, ?array $dane=NULL, $selected=NULL, $onChange=NULL)
 	{
-		echo "DEPRECATED selectGeneruj()";
+		@trigger_error('Method selectGeneruj() is deprecated. Use Select Class instead', E_USER_DEPRECATED);
 		//funkcja generuje select
 						
 		$hId=$id==NULL?'':"id=\"{$id}\"";
@@ -265,7 +266,7 @@ class Uzytki
 
 	public static function db2option($oDB, $tabela, $kolumna_klucz, $kolumna_wartosc, $warunek, $selected=NULL, $atrybuty=NULL)
 	{
-		echo "DEPRECATED db2option()";
+		@trigger_error('Method db2option() is deprecated. Use Select Class instead', E_USER_DEPRECATED);
 		//funkcja zwraca <option> wzgledem danych z bazy, w selected podajemy klucz opcji, ktora ma byc domyslna
 
 		$db = $oDB->klucz($tabela, $kolumna_klucz, $kolumna_wartosc, $warunek);
@@ -281,7 +282,7 @@ class Uzytki
 
 	public static function db2select($oDB, $tabela, $kolumna_klucz, $kolumna_wartosc, $warunek, $selected=NULL, $atrybuty=NULL, $atrybuty_option=NULL, ?array $options=NULL)
 	{
-		echo "DEPRECATED db2select()";
+        @trigger_error('Method db2select() is deprecated. Use Select Class instead', E_USER_DEPRECATED);
 		//funkcja zwraca <option> wzgledem danych z bazy
 		
 		//$option to dodatkowe opcje spoza bazy jako $klucz=>$wartosc
