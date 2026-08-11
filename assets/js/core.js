@@ -117,9 +117,15 @@ function CMSOrientuj()
 
 function CMSReOrientuj(kierunek = 'reOrientuj')
 {   
-    // Zmienia orientację tel <-> komp
+    let url = "/action/cmsupdate?tryb=" + kierunek;
+
+    // Jeśli przekazano konkretny układ ('portrait' lub 'landscape'), mapujemy to na setOrientation&value=...
+    if (kierunek === 'portrait' || kierunek === 'landscape') {
+        url = "/action/cmsupdate?tryb=setOrientation&value=" + kierunek;
+    }
+
     $.ajax({
-        url: "/action/cmsupdate?tryb=" + kierunek, 
+        url: url,
         dataType: "json",
         success: function(response) {
             console.log("Orientacja:", response.data?.orientation); 
