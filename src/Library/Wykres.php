@@ -21,7 +21,7 @@ class Wykres
 			'options'=>array
 			(
 				'responsive'=>TRUE,
-				'maintainAspectRatio'=>FALSE,
+				'maintainAspectRatio'=>TRUE,
 				'tooltip'=>array
 				(
 					'mode'=>'index',
