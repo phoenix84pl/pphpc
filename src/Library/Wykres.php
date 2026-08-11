@@ -97,14 +97,23 @@ class Wykres
 		}
 	}
 	
-    public function generuj()
+public function generuj()
     {
-        // funkcja generuje kod wykresu
-        $wynik = "
-<div id=\"{$this->_id}\" class=\"max\"></div>
-<script>(function() {CMSWykresGeneruj(document.getElementById('{$this->_id}'), " . json_encode($this->dane) . ");})();</script>
-        ";
-        
-        return $wynik;
+        $id = htmlspecialchars($this->_id, ENT_QUOTES, 'UTF-8');
+        $daneJson = json_encode($this->dane, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+
+        return <<<HTML
+<div id="{$id}" class="max"></div>
+<script>
+    $(document).ready(function() {
+        var el = document.getElementById('{$id}');
+        if (el && typeof CMSWykresGeneruj === 'function') {
+            CMSWykresGeneruj(el, {$daneJson});
+        } else if (!el) {
+            console.error('PPHPC Chart Error: Nie znaleziono kontenera dla wykresu o ID: {$id}');
+        }
+    });
+</script>
+HTML;
     }
 }
