@@ -31,9 +31,9 @@ function CMSInit()
 function CMSReLoad()
 {
 		//funkcja przeładowuje podstrony po zalogowaniu
-	$.ajax({url: "www/CMSUserbox.php", success: function(e) {$("#CMSUserbox").html(e);}});
+	$.ajax({url: "/cmsmenu", success: function(e) {$("#CMSUserbox").html(e);}});
 
-	$.ajax({url: "www/CMSPlayground.php", success: function(e) {$("#CMSPlayground").html(e);}});
+	$.ajax({url: "/playground", success: function(e) {$("#CMSPlayground").html(e);}});
 
 	CMSLoaderHide();
 }
