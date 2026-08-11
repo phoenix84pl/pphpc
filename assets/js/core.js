@@ -12,7 +12,7 @@ function CMSInit()
     if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');    //rejestracja nawigatora do apki PWA
     
     let windows = CMSGetParameterByName('CMSWindows');
-/*    
+    
     if(windows == null)
         $.ajax({url: "www/CMSStarter.php", success: function(e) {$("#CMSStarter").html(e);}});
     else
@@ -25,15 +25,15 @@ function CMSInit()
         }
         catch(e) { console.log('CMSWindows parse error:', e, windows); }
         history.replaceState(null, '', window.location.pathname);
-    }*/
+    }
 }
 
 function CMSReLoad()
 {
 		//funkcja przeładowuje podstrony po zalogowaniu
-	$.ajax({url: "/cmsmenu", success: function(e) {$("#CMSUserbox").html(e);}});
+	$.ajax({url: "/cmsmenu", success: function(e) {$("#CMSMenu").html(e);}});
 
-//	$.ajax({url: "/playground", success: function(e) {$("#CMSPlayground").html(e);}});
+	$.ajax({url: "/playground", success: function(e) {$("#CMSPlayground").html(e);}});
 
 	CMSLoaderHide();
 }
