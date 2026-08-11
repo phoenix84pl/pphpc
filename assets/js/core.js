@@ -255,16 +255,18 @@ function CMSWykresGeneruj(kontener, dane)
 {
     if (!kontener) return;
 
-    // Jeśli przekazano DIV (a nie CANVAS), utwórz w nim CANVAS dynamicznie
+    // Jeśli przekazano DIV, utwórz w nim CANVAS i wymuś pełny wymiar parenta
     let canvas = kontener;
     if (kontener.tagName !== 'CANVAS') {
-        kontener.innerHTML = ''; // czyszczenie kontenera
+        kontener.innerHTML = ''; 
         canvas = document.createElement('canvas');
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.display = 'block';
         kontener.appendChild(canvas);
     }
     
     function rysuj() {
-        // Konwertuj stringi dat na Date
         if (dane.data?.datasets) {
             dane.data.datasets.forEach(d => {
                 if (d.data?.[0]?.x && typeof d.data[0].x === 'string') {
@@ -273,11 +275,14 @@ function CMSWykresGeneruj(kontener, dane)
             });
         }
         
-        // Przekazujemy utworzony element canvas zamiast kontenera div
+        // Zapewniamy responsywność Chart.js do okna
+        if (!dane.options) dane.options = {};
+        dane.options.responsive = true;
+        dane.options.maintainAspectRatio = false;
+        
         return new Chart(canvas, {type: 'line', data: dane.data, options: dane.options});
     }
     
-    // Załaduj adapter tylko jeśli używamy osi 'time'
     const needsAdapter = Object.values(dane.options?.scales || {}).some(s => s.type === 'time');
     if (needsAdapter && !window._chartAdapter) {
         const s = document.createElement('script');
