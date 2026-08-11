@@ -115,8 +115,7 @@ function CMSOrientuj()
 function CMSReOrientuj(kierunek='reOrientuj')
 {	
     //zmienia orientację tel↔komp
-//    $.ajax({url: 'process/CMSUpdate.ajax.php?tryb='+kierunek, success: function(e) {console.log(e); CMSReLoad();}});
-	CMSReLoad();	//usunąć to jak już doładujemy UPDATE i odkomentuje się powyższe
+    $.ajax({url: "/action/cmsupdate?tryb="+kierunek, success: function(e) {console.log(e); CMSReLoad();}});
 }
 
 function CMSLoginGoogleZaloguj(wynik)

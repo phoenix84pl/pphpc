@@ -40,19 +40,22 @@ class Router
         $typ = $czesci[0] ?? '';
 
         // 2. Dynamiczna obsługa podziału architektonicznego (action, api, file, core)
-        if (in_array($typ, ['action', 'api', 'file', 'core']) && isset($czesci[1], $czesci[2])) {
+        if (in_array($typ, ['action', 'api', 'file', 'core']) && isset($czesci[1])) {
             
             if ($typ === 'core' && $czesci[1] === 'status') {
                 // Wyjątek dla wbudowanego statusu systemu w rdzeniu
                 $className = "\\Phoenix\\Core\\Controller\\Status";
-                $akcja = $czesci[2];
+                $akcja = $czesci[2] ?? 'index';
             } else {
-                // Dynamiczne mapowanie: /api/stock/list -> \Phoenix\App\Controller\Api\Stock->list()
-                $subNamespace = ucfirst($typ);         // "api" -> "Api", "action" -> "Action"
-                $controllerName = ucfirst($czesci[1]); // "stock" -> "Stock"
-                $akcja = $czesci[2];                  // "list"
-                
-                $className = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}";
+                // Dynamiczne mapowanie podwójne (Katalog + Sufiks):
+                // /action/cmsupdate        -> \Phoenix\App\Controller\Action\CmsupdateAction->index()
+                // /action/cmsupdate/zapisz -> \Phoenix\App\Controller\Action\CmsupdateAction->zapisz()
+                // /api/stock/list          -> \Phoenix\App\Controller\Api\StockApi->list()
+                $subNamespace = ucfirst($typ);         // "action" -> "Action", "api" -> "Api"
+                $controllerName = ucfirst($czesci[1]); // "cmsupdate" -> "Cmsupdate"
+                $akcja = $czesci[2] ?? 'index';        // Domyślnie "index", chyba że podano w URL
+
+                $className = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
             }
 
             if (class_exists($className) && method_exists($className, $akcja)) {
@@ -61,7 +64,7 @@ class Router
 
             return new Response(404, ['Content-Type' => 'application/json'], json_encode([
                 'status' => 'ERROR',
-                'message' => "Endpoint [{$typ}] not found or method missing in class {$className}."
+                'message' => "Endpoint [{$typ}] not found or method [{$akcja}] missing in class {$className}."
             ]));
         }
 
@@ -81,7 +84,7 @@ class Router
             $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
         }
 
-        // A. PRIORYTET: Budujemy poprawny Namespace z uwzględnieniem podkatalogów (np. "panel/ustawienia" -> "\Phoenix\App\Controller\Panel\Ustawienia")
+        // A. PRIORYTET: Budujemy poprawny Namespace z uwzględnieniem podkatalogów (np. "panel/ustawienia" -> "\Phoenix\App\Controller\Panel\UstawieniaController")
         $segments = explode('/', $viewName);
         $formattedSegments = array_map(fn($s) => ucfirst($s), $segments);
         $controllerClass = "\\Phoenix\\App\\Controller\\" . implode('\\', $formattedSegments) . "Controller";
