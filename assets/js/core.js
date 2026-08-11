@@ -253,45 +253,31 @@ function CMSDivAkcjaAktualizuj(wykonaj, link, div, callback=null, czyKomunikat=f
 
 function CMSWykresGeneruj(kontener, dane)
 {
-    if (!kontener) return;
-
-    // Jeśli przekazano DIV, utwórz w nim CANVAS i wymuś pełny wymiar parenta
-    let canvas = kontener;
-    if (kontener.tagName !== 'CANVAS') {
-        kontener.innerHTML = ''; 
-        canvas = document.createElement('canvas');
-        canvas.style.width = '100%';
-        canvas.style.height = '100%';
-        canvas.style.display = 'block';
-        kontener.appendChild(canvas);
-    }
-    
-    function rysuj() {
-        if (dane.data?.datasets) {
-            dane.data.datasets.forEach(d => {
-                if (d.data?.[0]?.x && typeof d.data[0].x === 'string') {
-                    d.data = d.data.map(p => ({x: new Date(p.x), y: p.y}));
-                }
-            });
-        }
-        
-        // Zapewniamy responsywność Chart.js do okna
-        if (!dane.options) dane.options = {};
-        dane.options.responsive = true;
-        dane.options.maintainAspectRatio = false;
-        
-        return new Chart(canvas, {type: 'line', data: dane.data, options: dane.options});
-    }
-    
-    const needsAdapter = Object.values(dane.options?.scales || {}).some(s => s.type === 'time');
-    if (needsAdapter && !window._chartAdapter) {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3';
-        s.onload = () => { window._chartAdapter = 1; rysuj(); };
-        document.head.appendChild(s);
-    } else {
-        return rysuj();
-    }
+	//funkcja generuje wykres w kontenerze na podstawie danych
+	
+	function rysuj() {
+		// Konwertuj stringi dat na Date
+		if (dane.data?.datasets) {
+			dane.data.datasets.forEach(d => {
+				if (d.data?.[0]?.x && typeof d.data[0].x === 'string') {
+					d.data = d.data.map(p => ({x: new Date(p.x), y: p.y}));
+				}
+			});
+		}
+		
+		return new Chart(kontener, {type: 'line', data: dane.data, options: dane.options});
+	}
+	
+	// Załaduj adapter tylko jeśli używamy osi 'time'
+	const needsAdapter = Object.values(dane.options?.scales || {}).some(s => s.type === 'time');
+	if (needsAdapter && !window._chartAdapter) {
+		const s = document.createElement('script');
+		s.src = 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3';
+		s.onload = () => { window._chartAdapter = 1; rysuj(); };
+		document.head.appendChild(s);
+	} else {
+		return rysuj();
+	}
 }
 
 function CMSCzasKonwertuj(sourceTimezone, time) {
