@@ -107,15 +107,25 @@ function CMSNoticeShow(html)
 
 function CMSOrientuj()
 {
-    //jeśli strona odpalona pionowo to ma zmienić wygląd na pionowy
-    if($(window).height()>$(window).width()) CMSReOrientuj('higher');
-    else CMSReOrientuj('wider');
+    // Jeśli ekran jest wyższy niż szerszy, ustawia układ pionowy (portrait), w przeciwnym razie poziomy (landscape)
+    if ($(window).height() > $(window).width()) {
+        CMSReOrientuj('portrait');
+    } else {
+        CMSReOrientuj('landscape');
+    }
 }
 
-function CMSReOrientuj(kierunek='reOrientuj')
-{	
-    //zmienia orientację tel↔komp
-    $.ajax({url: "/action/cmsupdate?tryb="+kierunek, success: function(e) {console.log(e); CMSReLoad();}});
+function CMSReOrientuj(kierunek = 'reOrientuj')
+{   
+    // Zmienia orientację tel <-> komp
+    $.ajax({
+        url: "/action/cmsupdate?tryb=" + kierunek, 
+        dataType: "json",
+        success: function(response) {
+            console.log("Orientacja:", response.data?.orientation); 
+            CMSReLoad();
+        }
+    });
 }
 
 function CMSLoginGoogleZaloguj(wynik)
