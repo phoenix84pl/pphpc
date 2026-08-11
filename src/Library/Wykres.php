@@ -103,7 +103,7 @@ public function generuj()
         $daneJson = json_encode($this->dane, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
         return <<<HTML
-<div id="{$id}" class="max"></div>
+<div id="{$id}" class="CMSMax"></div>
 <script>
     $(document).ready(function() {
         var el = document.getElementById('{$id}');
