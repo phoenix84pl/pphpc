@@ -318,11 +318,20 @@ function CMSCzasKonwertuj(sourceTimezone, time) {
 
 function CMSOknoInterwal(nazwa, czas)
 {
-	if (CMSInterwaly[nazwa]) clearInterval(CMSInterwaly[nazwa]);										//usun stary interwal o tej nazwie
-	CMSDivAktualizuj('www/'+nazwa+'.ajax.php', '#'+nazwa);												//aktualizuj div
-	CMSInterwaly[nazwa]=setInterval(() => CMSDivAktualizuj('www/'+nazwa+'.ajax.php', '#'+nazwa), czas);	//ustaw nowy interwal
+    // Usuń stary interwał o tej nazwie, jeśli istniał
+    if (CMSInterwaly[nazwa]) {
+        clearInterval(CMSInterwaly[nazwa]);
+    }
 
-	return CMSInterwaly[nazwa];
+    // Nowy, czysty URL zgodny z Routerem: /performance?render=widget
+    const url = '/' + nazwa + '?render=widget';
+
+    // Pierwsze pobranie treści kafelka
+    CMSDivAktualizuj(url, '#' + nazwa);
+
+    // Ustawienie interwału odświeżania
+    CMSInterwaly[nazwa] = setInterval(() => CMSDivAktualizuj(url, '#' + nazwa), czas);
+
+    return CMSInterwaly[nazwa];
 }
-
 
