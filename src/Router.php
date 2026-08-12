@@ -47,15 +47,15 @@ class Router
                 $className = "\\Phoenix\\Core\\Controller\\Status";
                 $akcja = $czesci[2] ?? 'index';
             } else {
-                // Dynamiczne mapowanie podwójne (Katalog + Sufiks):
-                // /action/cmsupdate        -> \Phoenix\App\Controller\Action\CmsupdateAction->index()
-                // /action/cmsupdate/zapisz -> \Phoenix\App\Controller\Action\CmsupdateAction->zapisz()
-                // /api/stock/list          -> \Phoenix\App\Controller\Api\StockApi->list()
+                // Dynamiczne mapowanie podwójne z detekcją priorytetu (Terminal -> App)
                 $subNamespace = ucfirst($typ);         // "action" -> "Action", "api" -> "Api"
                 $controllerName = ucfirst($czesci[1]); // "cmsupdate" -> "Cmsupdate"
-                $akcja = $czesci[2] ?? 'index';        // Domyślnie "index", chyba że podano w URL
+                $akcja = $czesci[2] ?? 'index';        // Domyślnie "index"
 
-                $className = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+                $classTerminal = "\\Phoenix\\Terminal\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+                $classApp      = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+
+                $className = class_exists($classTerminal) ? $classTerminal : $classApp;
             }
 
             if (class_exists($className) && method_exists($className, $akcja)) {
@@ -84,10 +84,15 @@ class Router
             $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
         }
 
-        // A. PRIORYTET: Budujemy poprawny Namespace z uwzględnieniem podkatalogów (np. "panel/ustawienia" -> "\Phoenix\App\Controller\Panel\UstawieniaController")
+        // A. PRIORYTET: Szukamy najpierw klasy w dedykowanej aplikacji (\Phoenix\Terminal), a potem w bazie (\Phoenix\App)
         $segments = explode('/', $viewName);
         $formattedSegments = array_map(fn($s) => ucfirst($s), $segments);
-        $controllerClass = "\\Phoenix\\App\\Controller\\" . implode('\\', $formattedSegments) . "Controller";
+        $relativeClass = implode('\\', $formattedSegments) . "Controller";
+
+        $classTerminal = "\\Phoenix\\Terminal\\Controller\\" . $relativeClass;
+        $classApp      = "\\Phoenix\\App\\Controller\\" . $relativeClass;
+
+        $controllerClass = class_exists($classTerminal) ? $classTerminal : $classApp;
 
         if (class_exists($controllerClass) && method_exists($controllerClass, 'index')) {
             return $this->executeHandler([$controllerClass, 'index'], $request);
