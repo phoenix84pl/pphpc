@@ -9,21 +9,36 @@ var CMSInterwaly = {}; 	//interwaly odświeżania okien
 
 function CMSInit()
 {
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');    //rejestracja nawigatora do apki PWA
+    // Rejestracja Service Workera dla PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
     
     let windows = CMSGetParameterByName('CMSWindows');
     
-    if(windows == null)
-        $.ajax({url: "www/CMSStarter.php", success: function(e) {$("#CMSStarter").html(e);}});
-    else
-    {
-        $('#CMSStarter').hide();
+    if (windows == null) {
+        // Strzał do nowej trasy /intro z wyraznym parametrem render
+        $.ajax({
+            url: "/intro?render=intro",
+            success: function(e) {
+                // Wstrzykujemy czysty HTML powitania do kontenera #CMSIntro
+                $("#CMSIntro").html(e).show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Błąd ładowania Intro:', error);
+            }
+        });
+    } else {
+        // Jeśli mamy zapamiętane okna w URL, ukrywamy intro i odpalamy okna
+        $('#CMSIntro').hide();
         CMSWindowsHide();
-        try
-        {
+        
+        try {
             JSON.parse(windows).forEach(w => CMSWindowShow(w[0], w[1], w[2] ?? {}));
+        } catch(e) { 
+            console.log('CMSWindows parse error:', e, windows); 
         }
-        catch(e) { console.log('CMSWindows parse error:', e, windows); }
+        
         history.replaceState(null, '', window.location.pathname);
     }
 }
