@@ -67,17 +67,23 @@ function CMSLoaderHide()
 
 function CMSWindowShow(window, page, args = {})
 {
-	CMSWindowHide('Over');		//schowanie OVr
-	
-	let url = `www/${page}.php`;
-	const queryParams = new URLSearchParams(args).toString();
+    CMSWindowHide('Over'); // Schowanie okna Over
 
-	if(queryParams)	url += '?' + queryParams;
+    // Budujemy URL: nazwa podstrony + render=window
+    const params = new URLSearchParams(args);
+    params.set('render', 'window');
 
-	$.ajax({url: url, success: function(e) {$("#CMSWindow"+window).html(e);}});
+    const url = `/${page}?${params.toString()}`;
 
-	$("#CMSShadow").fadeIn(500);
-	$("#CMSWindow"+window).fadeIn(500);
+    $.ajax({
+        url: url,
+        success: function(e) {
+            $("#CMSWindow" + window).html(e);
+        }
+    });
+
+    $("#CMSShadow").fadeIn(500);
+    $("#CMSWindow" + window).fadeIn(500);
 }
 
 function CMSWindowHide(window)
