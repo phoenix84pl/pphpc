@@ -2,43 +2,29 @@
 
 namespace Phoenix\Core\Controller;
 
+use Psr\Http\Message\ServerRequestInterface;
+
 class UiController
 {
-    public function index(): string
+    public function index(ServerRequestInterface $request): mixed
     {
-        // 1. Pobranie wariantu UI z .env (domyślnie 'tiles')
+        // 1. Odczytujemy tryb z .env (np. 'tiles')
         $uiMode = $_ENV['UI_MODE'] ?? getenv('UI_MODE') ?: 'tiles';
         $uiMode = preg_replace('/[^a-z0-9_-]/i', '', strtolower($uiMode));
 
-        // 2. Ustalamy korzeń aplikacji pt (wyjście z vendor/phoenix84pl/pphpc/src/Controller)
-        $appRoot = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
-        $viewsPath = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
+        // 2. Budujemy nazwę klasy docelowego kontrolera (np. \Phoenix\Terminal\Controller\TilesController)
+        $controllerName = ucfirst($uiMode) . 'Controller';
+        $classTerminal  = "\\Phoenix\\Terminal\\Controller\\{$controllerName}";
+        $classApp       = "\\Phoenix\\App\\Controller\\{$controllerName}";
 
-        // 3. Szukamy widoku płasko w katalogu views/ (np. views/tiles.phtml)
-        $contentView = $viewsPath . "/{$uiMode}.phtml";
+        $targetClass = class_exists($classTerminal) ? $classTerminal : (class_exists($classApp) ? $classApp : null);
 
-        // Fallback: jeśli plik wskazanego UI nie istnieje, ładujemy domyślny views/tiles.phtml
-        if (!file_exists($contentView)) {
-            $contentView = $viewsPath . "/tiles.phtml";
+        // 3. Odpalamy kontroler wewnętrznie i zwracamy jego wynik bezpośrednio do Routera
+        if ($targetClass && method_exists($targetClass, 'index')) {
+            $controller = new $targetClass();
+            return $controller->index($request);
         }
 
-        // 4. Obsługa wariantów renderowania PT (Full Page vs Widget / Window / AJAX)
-        $render = $_GET['render'] ?? 'page';
-
-        ob_start();
-        if ($render === 'window' || $render === 'widget' || isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-            // Sam widok kafelkowy bez otoczki HTML
-            require $contentView;
-        } else {
-            // Pełna strona – layout.phtml dostaje zmienną $contentView i robi require wewnątrz
-            $layoutPath = $viewsPath . "/layout.phtml";
-            if (file_exists($layoutPath)) {
-                require $layoutPath;
-            } else {
-                require $contentView;
-            }
-        }
-
-        return ob_get_clean();
+        return "Brak kontrolera dla UI_MODE [{$uiMode}] w aplikacji.";
     }
 }
