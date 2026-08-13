@@ -157,12 +157,19 @@ function CMSReOrientuj(kierunek = 'reOrientuj')
 
 function CMSLoginGoogleZaloguj(wynik)
 {
-		//funkcja loguje googlem
-	$.ajax({url: "process/login.ajax.php?typ=google&dane="+encodeURIComponent(wynik.credential), success: function(result)
-	{
-//		console.log("Google login success:", result);
-		CMSReLoad();
-	}});
+    // Generuje link do zalogowania googlem
+    $.ajax({
+        url: "action/login?typ=google&dane=" + encodeURIComponent(wynik.credential),
+        dataType: "json",
+        success: function(result)
+        {
+            if (result && result.error) {
+                alert(result.error);
+            } else {
+                CMSReLoad();
+            }
+        }
+    });
 }
 
 function CMSLoginGoogleInicjuj(selector, CID)
