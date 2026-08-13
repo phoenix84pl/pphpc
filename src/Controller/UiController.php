@@ -44,22 +44,25 @@ class UiController
         $isRender     = isset($_GET['render']) && in_array($_GET['render'], ['widget', 'window', 'ajax']);
         $isAjax       = $isAjaxHeader || $isPsrAjax || $isRender;
 
-        // A. AJAX / Przeładowanie (CMSReLoad): Zwracamy CZYSTY ui.phtml (BEZ skryptów autostartu)
+        // Renderujemy SAM ui.phtml
+        ob_start();
+        require $viewsPath . '/ui.phtml';
+        $uiHtml = ob_get_clean();
+
+        // A. Jeśli to zapytanie AJAX -> zwracamy czysty HTML z ui.phtml
         if ($isAjax) {
-            ob_start();
-            require $viewsPath . '/ui.phtml';
-            return ob_get_clean();
+            return $uiHtml;
         }
 
-        // B. Pierwsze załadowanie w przeglądarce: Zwracamy index.phtml (ZE skryptami autostartu)
-        $contentView = $viewsPath . '/index.phtml';
+        // B. Jeśli ktoś wchodzi z paska adresu na /ui -> wkładamy ui.phtml jako $contentView w layout.phtml
+        $contentView = $viewsPath . '/ui.phtml';
 
         ob_start();
         $layoutPath = $viewsPath . "/layout.phtml";
         if (file_exists($layoutPath)) {
             require $layoutPath;
         } else {
-            require $contentView;
+            echo $uiHtml;
         }
         return ob_get_clean();
     }
