@@ -34,6 +34,11 @@ function CMSInit()
 {
     // Orkiestrator dla index
 
+		// Nasłuchiwanie zmian orientacji ekranu i wywołanie CMSOrientuj
+	window.matchMedia("(orientation: portrait)").addEventListener("change", function(e) {
+        CMSOrientuj();
+    });
+
     CMSOrientuj();			//ustawianie orientacji ekranu i odświeżanie interfejsu
 
 	CMSServiceWorkerInit(); // Inicjalizacja Service Workera dla PWA
@@ -68,12 +73,16 @@ function CMSInit()
 }
 
 function CMSReLoad() {
+	//funkcja przeładowuje interfejs UI, np. po zmianie orientacji ekranu lub po wylogowaniu
     $('#CMSLoader').show();
 
     $.ajax({
         url: '/ui?render=ajax',
         success: function(htmlResponse) {
             $("#CMSMain").html(htmlResponse);
+        },
+        error: function(xhr, status, error) {
+            console.error("Błąd ładowania interfejsu UI:", error);
         },
         complete: function() {
             $('#CMSLoader').hide();
@@ -160,31 +169,31 @@ function CMSNoticeShow(html)
 	$("#CMSNotice").fadeIn(500).delay(3000).fadeOut(1500);
 }
 
-function CMSOrientuj()
-{
-    // Jeśli ekran jest wyższy niż szerszy, ustawia układ pionowy (portrait), w przeciwnym razie poziomy (landscape)
-    if ($(window).height() > $(window).width()) {
-        CMSReOrientuj('portrait');
-    } else {
-        CMSReOrientuj('landscape');
-    }
+function CMSOrientuj() {
+    // Odporne na paski adresu natywne sprawdzenie orientacji
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    const kierunek = isPortrait ? 'portrait' : 'landscape';
+
+    CMSReOrientuj(kierunek);
 }
 
-function CMSReOrientuj(kierunek = 'reOrientuj')
-{   
-    let url = "/core/action/update?tryb=" + kierunek;	//toggle: portrait, landscape
+function CMSReOrientuj(kierunek = 'reOrientuj') {
+		//reOrientuje interfejs w zależności od orientacji ekranu, zapisuje w sesji na backendzies
+    let url = "/core/action/update?tryb=" + kierunek;
 
-    // Jeśli przekazano konkretny układ ('portrait' lub 'landscape'), mapujemy to na setOrientation&value=...
     if (kierunek === 'portrait' || kierunek === 'landscape') {
-        url = "/core/action/update?tryb=setOrientation&value=" + kierunek;	//zmiana na żądany układ
+        url = "/core/action/update?tryb=setOrientation&value=" + kierunek;
     }
 
     $.ajax({
         url: url,
         dataType: "json",
         success: function(response) {
-//            console.log("Orientacja:", response.data?.orientation); 
+            // Po zapisaniu orientacji w sesji na backendzie, dociągamy właściwy UI
             CMSReLoad();
+        },
+        error: function(xhr, status, error) {
+            console.error("Błąd zapisu orientacji:", error);
         }
     });
 }
