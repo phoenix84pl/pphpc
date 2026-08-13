@@ -1,6 +1,6 @@
 <?php
 
-namespace Phoenix\App\Controller\Action;
+namespace Phoenix\Core\Controller\Action;
 
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
