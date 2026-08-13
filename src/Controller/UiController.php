@@ -10,18 +10,19 @@ class UiController
         $uiMode = $_ENV['UI_MODE'] ?? getenv('UI_MODE') ?: 'tiles';
         $uiMode = preg_replace('/[^a-z0-9_-]/i', '', strtolower($uiMode));
 
-        // 2. Pobieramy katalog widoków aplikacji (zdefiniowany w stałej lub konfiguracji)
-        $viewsPath = defined('VIEWS_PATH') ? VIEWS_PATH : dirname(__DIR__, 4) . '/views';
+        // 2. Ustalamy korzeń aplikacji pt (wyjście z vendor/phoenix84pl/pphpc/src/Controller)
+        $appRoot = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
+        $viewsPath = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
 
-        // 3. Ścieżka do podwidoku UI aplikacji
-        $viewPath = $viewsPath . "/ui/{$uiMode}.phtml";
+        // 3. Szukamy widoku płasko w katalogu views/ (np. views/tiles.phtml)
+        $viewPath = $viewsPath . "/{$uiMode}.phtml";
 
-        // Fallback: jeśli wskazany plik nie istnieje, ładujemy domyślny tiles.phtml
+        // Fallback: jeśli plik wskazanego UI nie istnieje, ładujemy domyślny views/tiles.phtml
         if (!file_exists($viewPath)) {
-            $viewPath = $viewsPath . "/ui/tiles.phtml";
+            $viewPath = $viewsPath . "/tiles.phtml";
         }
 
-        // 4. Obsługa wariantów renderowania (Page vs Widget / Window / AJAX)
+        // 4. Obsługa wariantów renderowania PT (Full Page vs Widget / Window / AJAX)
         $render = $_GET['render'] ?? 'page';
 
         ob_start();
