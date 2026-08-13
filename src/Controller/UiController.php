@@ -15,11 +15,11 @@ class UiController
         $viewsPath = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
 
         // 3. Szukamy widoku płasko w katalogu views/ (np. views/tiles.phtml)
-        $viewPath = $viewsPath . "/{$uiMode}.phtml";
+        $contentView = $viewsPath . "/{$uiMode}.phtml";
 
         // Fallback: jeśli plik wskazanego UI nie istnieje, ładujemy domyślny views/tiles.phtml
-        if (!file_exists($viewPath)) {
-            $viewPath = $viewsPath . "/tiles.phtml";
+        if (!file_exists($contentView)) {
+            $contentView = $viewsPath . "/tiles.phtml";
         }
 
         // 4. Obsługa wariantów renderowania PT (Full Page vs Widget / Window / AJAX)
@@ -27,13 +27,15 @@ class UiController
 
         ob_start();
         if ($render === 'window' || $render === 'widget' || isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-            require $viewPath;
+            // Sam widok kafelkowy bez otoczki HTML
+            require $contentView;
         } else {
+            // Pełna strona – layout.phtml dostaje zmienną $contentView i robi require wewnątrz
             $layoutPath = $viewsPath . "/layout.phtml";
             if (file_exists($layoutPath)) {
                 require $layoutPath;
             } else {
-                require $viewPath;
+                require $contentView;
             }
         }
 
