@@ -84,7 +84,7 @@ function CMSReLoad() {
 function CMSLogout()
 {
     $.ajax({
-        url: "/action/logout",
+        url: "/core/action/logout",
         type: "POST",
         dataType: "json",
         success: function(response)
@@ -172,11 +172,11 @@ function CMSOrientuj()
 
 function CMSReOrientuj(kierunek = 'reOrientuj')
 {   
-    let url = "/action/cmsupdate?tryb=" + kierunek;
+    let url = "/core/action/update?tryb=" + kierunek;	//toggle: portrait, landscape
 
     // Jeśli przekazano konkretny układ ('portrait' lub 'landscape'), mapujemy to na setOrientation&value=...
     if (kierunek === 'portrait' || kierunek === 'landscape') {
-        url = "/action/cmsupdate?tryb=setOrientation&value=" + kierunek;
+        url = "/core/action/update?tryb=setOrientation&value=" + kierunek;	//zmiana na żądany układ
     }
 
     $.ajax({
