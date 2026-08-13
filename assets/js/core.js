@@ -59,15 +59,21 @@ function CMSReLoad() {
 
 function CMSLogout()
 {
-		//funkcja wylogowuje
-
-	$.ajax({url: "process/CMSLogout.ajax.php",
-		success: function(result)
-		{
-//				console.log(result);
-				CMSReLoad();	//whole site reload due to login
-		}});
-
+    $.ajax({
+        url: "/action/cmslogout",
+        type: "POST",
+        dataType: "json",
+        success: function(response)
+        {
+            if (response.status === 'success') {
+                CMSReLoad(); // Przeładowanie strony po udanym wylogowaniu
+            }
+        },
+        error: function(xhr, status, error)
+        {
+            console.error("Logout failed:", error);
+        }
+    });
 }
 
 function CMSLoaderShow()
