@@ -159,7 +159,7 @@ function CMSReOrientuj(kierunek = 'reOrientuj')
         url: url,
         dataType: "json",
         success: function(response) {
-//            console.log("Orientacja:", response.data?.orientation); 
+            console.log("Orientacja:", response.data?.orientation); 
             CMSReLoad();
         }
     });
