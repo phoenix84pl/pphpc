@@ -122,7 +122,7 @@ class Router
             return new Response(200, [], (string)$result);
         }
 
-        // 2. Obsługa plików widoków (.phtml) - dzięki temu widoki widzą zmienną $db
+        // 2. Obsługa plików widoków (.phtml) - widoki widzą zmienną $db
         if (is_string($handler) && file_exists($handler)) {
             ob_start();
             require $handler;
@@ -138,6 +138,8 @@ class Router
                 $controller = new $controllerClass();
                 
                 if (method_exists($controller, $method)) {
+                    // Wywołanie metody kontrolera – jeśli wyrzuci błąd lub wyjątek,
+                    // poleci on bezpośrednio do globalnego handlera z Bootstrap.php
                     $result = $controller->$method($request);
                     if ($result instanceof ResponseInterface) return $result;
                     return new Response(200, [], (string)$result);
@@ -145,6 +147,7 @@ class Router
             }
         }
 
-        return new Response(500, [], '<h1>500 - Invalid Handler</h1>');
+        // Błąd konfiguracji samego routera (np. brakująca klasa lub metoda)
+        return new Response(500, [], '<h1>500 - Invalid Handler Configuration</h1>');
     }
 }

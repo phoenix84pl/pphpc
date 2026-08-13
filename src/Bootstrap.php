@@ -23,7 +23,33 @@ class Bootstrap
             }
         }
 
-        // 3. Domyślna instancja bazy
+        // 3. Obsługa trybu APP_DEBUG z .env
+        $isDebug = ($_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG')) == '1';
+
+        if ($isDebug) {
+            ini_set('display_errors', '1');
+            ini_set('display_startup_errors', '1');
+            error_reporting(E_ALL);
+
+            // Rejestracja globalnego handlera, aby niezłapane błędy i wyjątki były widoczne na ekranie
+            set_exception_handler(function (\Throwable $e) {
+                http_response_code(500);
+                echo "<div style='background: #1e1e1e; color: #f8f8f2; padding: 20px; font-family: monospace; font-size: 14px; line-height: 1.5; border-left: 5px solid #ff5555; margin: 20px;'>";
+                echo "<h2 style='color: #ff5555; margin-top: 0;'>[APP_DEBUG=1] Fatal Exception / Error</h2>";
+                echo "<p><b>Message:</b> " . htmlspecialchars($e->getMessage()) . "</p>";
+                echo "<p><b>File:</b> " . htmlspecialchars($e->getFile()) . " (line " . $e->getLine() . ")</p>";
+                echo "<p><b>Stack trace:</b></p>";
+                echo "<pre style='background: #111; color: #50fa7b; padding: 12px; overflow: auto; border-radius: 4px;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+                echo "</div>";
+                exit;
+            });
+        } else {
+            ini_set('display_errors', '0');
+            ini_set('display_startup_errors', '0');
+            error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+        }
+
+        // 4. Domyślna instancja bazy
         if (!isset($GLOBALS['db']) && class_exists('\Phoenix\Core\Database')) {
             try {
                 $GLOBALS['db'] = new Database();
