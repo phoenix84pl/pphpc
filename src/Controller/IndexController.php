@@ -1,6 +1,6 @@
 <?php
 
-namespace Phoenix\Terminal\Controller;
+namespace Phoenix\Core\Controller;
 
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -9,7 +9,7 @@ class IndexController
     public function index(?ServerRequestInterface $request = null): mixed
     {
         // 1. Pobieramy wyrenderowany wariant z UiController (np. kafelki)
-        $uiController = new UiController();
+        $uiController = new \Phoenix\Core\Controller\UiController();
         $content      = $uiController->index($request);
 
         // 2. Detekcja AJAX - jeśli to zapytanie AJAX, oddajemy czystą treść bez szkieletu index.phtml
@@ -21,10 +21,14 @@ class IndexController
             return $content;
         }
 
-        // 3. Wejście bezpośrednie z przeglądarki -> oprawiamy w szkielet views/index.phtml
-        $appRoot   = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
-        $viewsPath = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
-        $indexPath = $viewsPath . '/index.phtml';
+        // 3. Wejście bezpośrednie z przeglądarki -> kaskadowe oprawianie w szkielet index.phtml
+        $appRoot     = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
+        $appViews    = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
+        $coreViews   = dirname(__DIR__, 2) . '/views'; // pphpc/views
+
+        $indexPath = file_exists($appViews . '/index.phtml') 
+            ? $appViews . '/index.phtml' 
+            : $coreViews . '/index.phtml';
 
         ob_start();
         if (file_exists($indexPath)) {
