@@ -11,10 +11,12 @@ class Router
 {
     private array $routes = [];
     private string $viewsPath;
+    private string $coreViewsPath;
 
-    public function __construct(string $viewsPath)
+    public function __construct(string $viewsPath, ?string $coreViewsPath = null)
     {
         $this->viewsPath = rtrim($viewsPath, '/');
+        $this->coreViewsPath = $coreViewsPath ? rtrim($coreViewsPath, '/') : dirname(__DIR__) . '/views';
     }
 
     public function add(string $method, string $uri, mixed $handler): void
@@ -43,8 +45,11 @@ class Router
 
         // 2. Detekcja warstwy architektonicznej (core, app lub domyślnie terminal)
         $firstSegment = strtolower($czesci[0]);
+        $isExplicitLayer = false;
+
         if (in_array($firstSegment, ['core', 'app'])) {
             $layer = ucfirst($firstSegment); // "Core" lub "App"
+            $isExplicitLayer = true;         // Wymuszono jawnie warstwę w URL
             array_shift($czesci);            // Usuwamy prefiks warstwy z dalszego przetwarzania
         } else {
             $layer = 'Terminal';             // Domyślna warstwa aplikacji
@@ -63,8 +68,13 @@ class Router
             $controllerName = ucfirst($czesci[1]);          // "Logout", "Update", "Status"
             $akcja          = !empty($czesci[2]) ? trim($czesci[2]) : 'index';
 
-            // Konstruujemy jednoznaczną klasę dla wyznaczonej warstwy
+            // Konstruujemy klasę dla wyznaczonej warstwy
             $className = "\\Phoenix\\{$layer}\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+
+            // Jeśli nie podano jawnie warstwy w URL i nie znaleziono w Terminal, sprawdzamy Core
+            if (!class_exists($className) && !$isExplicitLayer && $layer === 'Terminal') {
+                $className = "\\Phoenix\\Core\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+            }
 
             if (class_exists($className) && method_exists($className, $akcja)) {
                 return $this->executeHandler([$className, $akcja], $request);
@@ -83,25 +93,34 @@ class Router
         }
 
         $viewUri = implode('/', $viewUriParts);
-        $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
 
-        // Przywrócona oryginalna obsługa welcome.phtml dla strony głównej
-        if ($viewUri === 'index' && !file_exists($viewFile)) {
-            $viewFile = $this->viewsPath . '/welcome.phtml';
-        }
+        // Wyznaczenie ścieżek pliku widoku: w aplikacji oraz w silniku Core
+        $appViewFile  = $this->viewsPath . '/' . $viewUri . '.phtml';
+        $coreViewFile = $this->coreViewsPath . '/' . $viewUri . '.phtml';
 
-        // A. Szukamy jednoznacznego kontrolera dla danej warstwy
+        // A. KASKADA KONTROLERA WIDOKU:
+        // 1. Szukamy w domyślnej/wskazanej warstwie (np. Terminal)
         $formattedSegments = array_map(fn($s) => ucfirst($s), $viewUriParts);
         $relativeClass     = implode('\\', $formattedSegments) . "Controller";
         $controllerClass   = "\\Phoenix\\{$layer}\\Controller\\" . $relativeClass;
+
+        // 2. Jeśli w Terminal brak kontrolera i nie wymuszono warstwy w URL -> szukamy w Core
+        if (!class_exists($controllerClass) && !$isExplicitLayer && $layer === 'Terminal') {
+            $controllerClass = "\\Phoenix\\Core\\Controller\\" . $relativeClass;
+        }
 
         if (class_exists($controllerClass) && method_exists($controllerClass, 'index')) {
             return $this->executeHandler([$controllerClass, 'index'], $request);
         }
 
-        // B. FALLBACK: Jeśli kontrolera brak, ale istnieje sam widok .phtml (index.phtml lub welcome.phtml)
-        if (file_exists($viewFile)) {
-            return $this->executeHandler($viewFile, $request);
+        // B. KASKADA PLIKÓW WIDOKU (.phtml):
+        // Najpierw szukamy w Aplikacji (pt), potem w Silniku (pphpc)
+        if (file_exists($appViewFile)) {
+            return $this->executeHandler($appViewFile, $request);
+        }
+
+        if (file_exists($coreViewFile)) {
+            return $this->executeHandler($coreViewFile, $request);
         }
 
         // 5. Całkowity brak dopasowania

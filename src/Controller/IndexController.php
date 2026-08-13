@@ -1,6 +1,6 @@
 <?php
 
-namespace Phoenix\Core\Controller;
+namespace Phoenix\Terminal\Controller;
 
 use Psr\Http\Message\ServerRequestInterface;
 

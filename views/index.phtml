@@ -1,0 +1,25 @@
+<!-- Widok UI (dokładnie ten sam co na /ui) -->
+<?php 
+if (isset($content)) {
+    echo $content;
+} elseif (isset($variantView) && file_exists($variantView)) {
+    require $variantView;
+}
+?>
+
+<!-- Dodatki dla index (nakładki globalne) -->
+<div id="CMSLoader" style="display: none;">
+    <p><img src="assets/img/logo/CMSLogo.png" alt="Loading" /></p>
+    <p class="maxitext bold">PhoenixTerminal.com</p>
+    <p>Automated stock exchange.</p>
+    <p><img src="assets/img/anime/CMSLoading.gif" alt="Spinner" /></p>
+</div>
+
+<div id="CMSIntro"></div>
+
+<!-- Dodatkowy JS dla startu aplikacji -->
+<script>
+    $(document).ready(function() {
+        CMSInit();
+    });
+</script>
