@@ -25,6 +25,9 @@ class Wykres
 					'intersect' => FALSE,
 				),
 				'plugins' => array(
+					'legend' => array(
+						'display' => TRUE,
+					),
 					'tooltip' => array(
 						'mode' => 'index',
 						'intersect' => FALSE,
@@ -32,7 +35,7 @@ class Wykres
 				),
 			),
 		);  
-	}	
+	}
 
 	private function _tablicaGeneruj($dane)
 	{
