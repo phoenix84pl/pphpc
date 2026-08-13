@@ -47,15 +47,22 @@ class Router
                 $className = "\\Phoenix\\Core\\Controller\\Status";
                 $akcja = $czesci[2] ?? 'index';
             } else {
-                // Dynamiczne mapowanie podwójne z detekcją priorytetu (Terminal -> App)
+                // Dynamiczne mapowanie podwójne/potrójne z detekcją priorytetu (Terminal -> App -> Core)
                 $subNamespace = ucfirst($typ);         // "action" -> "Action", "api" -> "Api"
                 $controllerName = ucfirst($czesci[1]); // "cmsupdate" -> "Cmsupdate"
                 $akcja = $czesci[2] ?? 'index';        // Domyślnie "index"
 
                 $classTerminal = "\\Phoenix\\Terminal\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
                 $classApp      = "\\Phoenix\\App\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
+                $classCore     = "\\Phoenix\\Core\\Controller\\{$subNamespace}\\{$controllerName}{$subNamespace}";
 
-                $className = class_exists($classTerminal) ? $classTerminal : $classApp;
+                if (class_exists($classTerminal)) {
+                    $className = $classTerminal;
+                } elseif (class_exists($classApp)) {
+                    $className = $classApp;
+                } else {
+                    $className = $classCore;
+                }
             }
 
             if (class_exists($className) && method_exists($className, $akcja)) {
@@ -84,15 +91,22 @@ class Router
             $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
         }
 
-        // A. PRIORYTET: Szukamy najpierw klasy w dedykowanej aplikacji (\Phoenix\Terminal), a potem w bazie (\Phoenix\App)
+        // A. PRIORYTET: Szukamy najpierw klasy w dedykowanej aplikacji (\Phoenix\Terminal), potom w bazie (\Phoenix\App), na końcu w silniku (\Phoenix\Core)
         $segments = explode('/', $viewName);
         $formattedSegments = array_map(fn($s) => ucfirst($s), $segments);
         $relativeClass = implode('\\', $formattedSegments) . "Controller";
 
         $classTerminal = "\\Phoenix\\Terminal\\Controller\\" . $relativeClass;
         $classApp      = "\\Phoenix\\App\\Controller\\" . $relativeClass;
+        $classCore     = "\\Phoenix\\Core\\Controller\\" . $relativeClass;
 
-        $controllerClass = class_exists($classTerminal) ? $classTerminal : $classApp;
+        if (class_exists($classTerminal)) {
+            $controllerClass = $classTerminal;
+        } elseif (class_exists($classApp)) {
+            $controllerClass = $classApp;
+        } else {
+            $controllerClass = $classCore;
+        }
 
         if (class_exists($controllerClass) && method_exists($controllerClass, 'index')) {
             return $this->executeHandler([$controllerClass, 'index'], $request);
