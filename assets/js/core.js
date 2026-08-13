@@ -7,13 +7,35 @@ var CMSInterwaly = {}; 	//interwaly odświeżania okien
 
 })(jQuery);
 
+function CMSServiceWorkerInit() {
+    // Odpala service workera dla PWA, jeśli jest dostępny
+    if ('serviceWorker' in navigator) {
+        var registerSW = function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) {
+                    // Opcjonalny log potwierdzający poprawną rejestrację
+                    // console.log('ServiceWorker zarejestrowany:', reg.scope);
+                })
+                .catch(function(err) {
+                    console.error('ServiceWorker error:', err);
+                });
+        };
+
+        // Jeśli zdarzenie 'load' już minęło, rejestrujemy od razu, w przeciwnym razie czekamy na load
+        if (document.readyState === 'complete') {
+            registerSW();
+        } else {
+            window.addEventListener('load', registerSW);
+        }
+    }
+}
+
 function CMSInit()
 {
-    // Rejestracja Service Workera dla PWA
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
-    }
-    
+    // Orkiestrator dla index
+
+	CMSServiceWorkerInit(); // Inicjalizacja Service Workera dla PWA
+
     let windows = CMSGetParameterByName('CMSWindows');
     
     if (windows == null) {
@@ -159,7 +181,7 @@ function CMSReOrientuj(kierunek = 'reOrientuj')
         url: url,
         dataType: "json",
         success: function(response) {
-            console.log("Orientacja:", response.data?.orientation); 
+//            console.log("Orientacja:", response.data?.orientation); 
             CMSReLoad();
         }
     });
