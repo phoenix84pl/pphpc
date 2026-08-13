@@ -34,6 +34,8 @@ function CMSInit()
 {
     // Orkiestrator dla index
 
+    CMSOrientuj();			//ustawianie orientacji ekranu i odświeżanie interfejsu
+
 	CMSServiceWorkerInit(); // Inicjalizacja Service Workera dla PWA
 
     let windows = CMSGetParameterByName('CMSWindows');
