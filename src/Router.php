@@ -85,6 +85,11 @@ class Router
         $viewUri = implode('/', $viewUriParts);
         $viewFile = $this->viewsPath . '/' . $viewUri . '.phtml';
 
+        // Przywrócona oryginalna obsługa welcome.phtml dla strony głównej
+        if ($viewUri === 'index' && !file_exists($viewFile)) {
+            $viewFile = $this->viewsPath . '/welcome.phtml';
+        }
+
         // A. Szukamy jednoznacznego kontrolera dla danej warstwy
         $formattedSegments = array_map(fn($s) => ucfirst($s), $viewUriParts);
         $relativeClass     = implode('\\', $formattedSegments) . "Controller";
@@ -94,7 +99,7 @@ class Router
             return $this->executeHandler([$controllerClass, 'index'], $request);
         }
 
-        // B. FALLBACK: Jeśli kontrolera brak, ale istnieje sam widok .phtml
+        // B. FALLBACK: Jeśli kontrolera brak, ale istnieje sam widok .phtml (index.phtml lub welcome.phtml)
         if (file_exists($viewFile)) {
             return $this->executeHandler($viewFile, $request);
         }
