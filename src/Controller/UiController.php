@@ -8,7 +8,7 @@ class UiController
 {
     public function index(?ServerRequestInterface $request = null): mixed
     {
-        // 1. Odczyt wariantu z .env (np. 'tiles')
+        // 1. Ustalenie wariantu UI z .env
         $uiMode = $_ENV['UI_MODE'] ?? getenv('UI_MODE') ?: 'tiles';
         $uiMode = preg_replace('/[^a-z0-9_-]/i', '', strtolower($uiMode));
 
@@ -16,32 +16,51 @@ class UiController
             $uiMode = 'tiles';
         }
 
-        // 2. Ścieżki do plików widoków
-        $appRoot     = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
-        $viewsPath   = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
-        
-        // Ścieżka do konkretnego wariantu (np. views/tiles.phtml)
-        $variantView = $viewsPath . "/{$uiMode}.phtml";
-        if (!file_exists($variantView)) {
-            $variantView = $viewsPath . "/tiles.phtml";
+        // 2. Szukamy i uruchamiamy kontroler konkretnego wariantu (np. TilesController),
+        // aby przygotował nam zmienne $orientation i $tiles!
+        $controllerName = ucfirst($uiMode) . 'Controller';
+        $classTerminal  = "\\Phoenix\\Terminal\\Controller\\{$controllerName}";
+        $classApp       = "\\Phoenix\\App\\Controller\\{$controllerName}";
+
+        $targetClass = class_exists($classTerminal) ? $classTerminal : (class_exists($classApp) ? $classApp : null);
+
+        // Zapobiegamy pętli (gdyby targetClass okazał się tym samym UiController)
+        if ($targetClass === static::class) {
+            $targetClass = null;
         }
 
-        // Ścieżka do wspólnego opakowania UI (views/ui.phtml)
-        $uiWrapper = $viewsPath . "/ui.phtml";
+        // 3. Jeśli mamy kontroler wariantu, pobieramy z niego wyrenderowany HTML kafelków
+        // LUB uruchamiamy go, aby przygotował zmienne
+        $variantHtml = '';
+        if ($targetClass && method_exists($targetClass, 'index')) {
+            $variantController = new $targetClass();
+            $variantHtml       = $variantController->index($request);
+        }
 
-        // 3. Detekcja AJAX
+        // Ścieżka do opakowania UI
+        $appRoot     = defined('APP_ROOT') ? APP_ROOT : dirname(__DIR__, 5);
+        $viewsPath   = defined('VIEWS_PATH') ? VIEWS_PATH : $appRoot . '/views';
+        $variantView = $viewsPath . "/{$uiMode}.phtml";
+        $uiWrapper   = $viewsPath . "/ui.phtml";
+
+        // Detekcja AJAX
         $isAjaxHeader = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
         $isPsrAjax    = $request && strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
         $isRender     = isset($_GET['render']) && in_array($_GET['render'], ['widget', 'window']);
+        $isAjax       = $isAjaxHeader || $isPsrAjax || $isRender;
 
-        $isAjax = $isAjaxHeader || $isPsrAjax || $isRender;
-
-        // A. Jeśli to AJAX / okno – renderujemy ui.phtml (który w środku robi require $variantView + wywołuje skrypty UI)
+        // Buforujemy wyjście ui.phtml
         ob_start();
         if (file_exists($uiWrapper)) {
-            require $uiWrapper; // w środku używa $variantView
+            // Jeśli kontroler wariantu zwrócił już gotowy HTML kafelków, 
+            // wyświetlamy go bezpośrednio, a jeśli nie - ładujemy plik wariantu
+            require $uiWrapper;
         } else {
-            require $variantView;
+            if ($variantHtml) {
+                echo $variantHtml;
+            } else {
+                require file_exists($variantView) ? $variantView : $viewsPath . "/tiles.phtml";
+            }
         }
         $uiHtml = ob_get_clean();
 
@@ -49,8 +68,7 @@ class UiController
             return $uiHtml;
         }
 
-        // B. Jeśli to wejście bezpośrednie z przeglądarki – uderzamy w layout.phtml,
-        // a jako treść ($contentView) przekazujemy ui.phtml
+        // Wejście przez przeglądarkę (SSR z layout.phtml)
         $contentView = file_exists($uiWrapper) ? $uiWrapper : $variantView;
 
         ob_start();
