@@ -13,26 +13,27 @@ class Wykres
 
 	public function __construct()
 	{
-		$this->_id='wykres_'.uniqid();
+		$this->_id = 'wykres_' . uniqid();
 		
-		$this->dane=array
-		(
-			'data'=>NULL,
-			'options'=>array
-			(
-				'responsive'=>TRUE,
-				'maintainAspectRatio'=>TRUE,
-				'tooltip'=>array
-				(
-					'mode'=>'index',
-					'intersect'=>FALSE,
+		$this->dane = array(
+			'data' => NULL,
+			'options' => array(
+				'responsive' => TRUE,
+				'maintainAspectRatio' => TRUE,
+				'interaction' => array(
+					'mode' => 'index',
+					'intersect' => FALSE,
 				),
-				'plugins'=>array(),
+				'plugins' => array(
+					'tooltip' => array(
+						'mode' => 'index',
+						'intersect' => FALSE,
+					),
+				),
 			),
-		);	
+		);  
+	}	
 
-	}
-	
 	private function _tablicaGeneruj($dane)
 	{
 			//funkcja generuje tablicę z danych niezależnie od tego, co weszło
