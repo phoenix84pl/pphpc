@@ -60,7 +60,7 @@ function CMSReLoad() {
 function CMSLogout()
 {
     $.ajax({
-        url: "/action/cmslogout",
+        url: "/action/logout",
         type: "POST",
         dataType: "json",
         success: function(response)

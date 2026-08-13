@@ -5,7 +5,7 @@ namespace Phoenix\Core\Controller\Action;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 
-class CmslogoutAction
+class LogoutAction
 {
     public function index(): ResponseInterface
     {
