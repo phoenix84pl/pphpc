@@ -48,7 +48,7 @@ function CMSReLoad()
 		//funkcja przeładowuje podstrony po zalogowaniu
 	$.ajax({url: "/cmsmenu", success: function(e) {$("#CMSMenu").html(e);}});
 
-	$.ajax({url: "/ui", success: function(e) {$("#CMSUI").html(e);}});
+	$.ajax({url: "/playground", success: function(e) {$("#CMSPlayground").html(e);}});
 
 	CMSLoaderHide();
 }
