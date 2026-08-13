@@ -43,14 +43,18 @@ function CMSInit()
     }
 }
 
-function CMSReLoad()
-{
-		//funkcja przeładowuje podstrony po zalogowaniu
-	$.ajax({url: "/cmsmenu", success: function(e) {$("#CMSMenu").html(e);}});
+function CMSReLoad() {
+    $('#CMSLoader').show();
 
-	$.ajax({url: "/ui", success: function(e) {$("#CMSUI").html(e);}});
-
-	CMSLoaderHide();
+    $.ajax({
+        url: '/ui?render=ajax',
+        success: function(htmlResponse) {
+            $("#CMSMain").html(htmlResponse);
+        },
+        complete: function() {
+            $('#CMSLoader').hide();
+        }
+    });
 }
 
 function CMSLogout()
