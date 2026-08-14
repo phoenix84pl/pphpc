@@ -127,21 +127,42 @@ function CMSWindowShow(window, page, args = {})
 {
     CMSWindowHide('Over'); // Schowanie okna Over
 
-    // Budujemy URL: nazwa podstrony + render=window
+    const $win = $("#CMSWindow" + window);
+    const $shadow = $("#CMSShadow");
+
+    // Wstawiamy loader natychmiast, czyszcząc poprzednią treść okna
+    const loaderHtml = `
+        <div class="CMSKontener">
+            <div class="CMSWnetrze CMSCenter">
+                <img class="CMSLoading" src="/assets/img/anime/CMSLoading.gif" alt="Ładowanie..." />
+            </div>
+        </div>
+    `;
+    $win.html(loaderHtml);
+
+    // Pokazujemy okno i cień natychmiast z loaderem
+    $shadow.fadeIn(200);
+    $win.fadeIn(200);
+
+    // Oczyszczamy nazwę widoku: usuwamy wiodący slash oraz rozszerzenia .ajax/.php
+    let cleanPage = page.toString().replace(/^\/+/, '').replace(/\.(ajax|php)$/, '');
+
+    // Budujemy parametry zapytania z obiektu args i wymuszamy render=window
     const params = new URLSearchParams(args);
     params.set('render', 'window');
 
-    const url = `/${page}?${params.toString()}`;
+    const url = `/${cleanPage}?${params.toString()}`;
 
     $.ajax({
         url: url,
-        success: function(e) {
-            $("#CMSWindow" + window).html(e);
+        type: 'GET',
+        success: function(response) {
+            $win.html(response);
+        },
+        error: function(xhr) {
+            console.error(`Błąd ładowania okna [${cleanPage}]:`, xhr.status, xhr.statusText);
         }
     });
-
-    $("#CMSShadow").fadeIn(500);
-    $("#CMSWindow" + window).fadeIn(500);
 }
 
 function CMSWindowHide(window)
