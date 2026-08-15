@@ -62,10 +62,10 @@ class Router
         // PRZELICZENIE $typ PO PRZESUNIĘCIU PREFIKSU
         $typ = strtolower($czesci[0]);
 
-        // 3. Dynamiczna obsługa AKCJI/API/PLIKÓW (/action/..., /api/..., /file/...)
-        if (in_array($typ, ['action', 'api', 'file']) && isset($czesci[1])) {
-            $subNamespace   = ucfirst($typ);                // "Action", "Api", "File"
-            $controllerName = ucfirst($czesci[1]);          // "Logout", "Update", "Status"
+        // 3. Dynamiczna obsługa AKCJI/API/PLIKÓW/DANYCH (/action/..., /api/..., /file/..., /data/...)
+        if (in_array($typ, ['action', 'api', 'file', 'data']) && isset($czesci[1])) {
+            $subNamespace   = ucfirst($typ);                // "Action", "Api", "File", "Data"
+            $controllerName = ucfirst($czesci[1]);          // "Logout", "Update", "Status", "TickerSzukaj"
             $akcja          = !empty($czesci[2]) ? trim($czesci[2]) : 'index';
 
             // Konstruujemy klasę dla wyznaczonej warstwy
@@ -124,7 +124,7 @@ class Router
         }
 
         // 5. Całkowity brak dopasowania
-        if (in_array($typ, ['api', 'action'])) {
+        if (in_array($typ, ['api', 'action', 'data'])) {
             return new Response(404, ['Content-Type' => 'application/json; charset=utf-8'], json_encode([
                 'status' => 'ERROR', 
                 'message' => "404 - Endpoint Not Found in layer {$layer}"
