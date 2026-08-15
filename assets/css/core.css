@@ -8,7 +8,7 @@ table > tbody > tr > td {padding: 0;}
 
 #CMSMain	{height: 100%; width: 100%; position: relative;}
 #CMLloader	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; text-align: center; overflow: hidden; display: none;}
-#CMSIntro	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; background-image: url("../img/bg/CMSIntro.jpg"); background-position: center; background-size: cover; text-align: center; color: #404040; text-shadow: -1px 0 #cccccc, 0 1px #cccccc, 1px 0 #cccccc, 0 -1px #cccccc;}
+#CMSIntro	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; background-image: url("../img/bg/CMSIntro.jpg"); background-position: center; background-size: cover; text-align: center; }
 #CMSHeader	{position: absolute; top: 0; left: 0; width: calc(100% - 10px); height: 20px; padding: 0 5px; background: #000000; border-bottom: 1px solid purple; color: white; text-align: right;}
 #CMSHeader a	{color: #ffffff; text-decoration: none;}
 #CMSLogo img	{width: 16px; height: 16px; padding: 5px;}
