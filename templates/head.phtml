@@ -1,0 +1,28 @@
+        <title><?= $_ENV['META_TITLE'] ?? '' ?></title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#000000">
+
+        <meta property="og:title" content="<?= $_ENV['META_TITLE'] ?? '' ?>" />
+        <meta property="og:type" content="<?= $_ENV['META_TYPE'] ?? '' ?>" />
+        <meta property="og:url" content="<?= $_ENV['META_URL'] ?? '' ?>"/>
+        <meta property="og:description" content="<?= $_ENV['META_DESC'] ?? '' ?>"/>
+        <meta property="og:image" content="<?= $_ENV['META_IMAGE'] ?? '' ?>"/>
+
+        <link rel="manifest" href="/assets/json/manifest.json">
+        <link rel="stylesheet" type="text/css" href="/assets/css/core.css" />
+        <link rel="stylesheet" type="text/css" href="/assets/css/app.css" />
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Comfortaa" />
+        <link rel="icon" type="image/png" href="<?= $_ENV['META_ICON'] ?? '' ?>">
+        <link rel="preconnect" href="https://accounts.google.com">
+        <link rel="dns-prefetch" href="https://accounts.google.com">
+        
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+
+        <script src="/assets/js/jquery.min.js"></script>
+        <script src="/assets/js/core.js"></script>
+        <script src="/assets/js/app.js"></script>
