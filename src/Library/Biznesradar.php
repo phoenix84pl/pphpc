@@ -1,84 +1,133 @@
 <?php
 
-namespace Phoenix\Terminal\Controller\Action;
+namespace Phoenix\Core\Library;
 
-use Nyholm\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Phoenix\Core\Database;
-use Phoenix\Core\Library\Biznesradar;
+use DOMDocument;
+use DOMXPath;
 
-class BiznesradarAction
+class Biznesradar
 {
-    private Database $db;
+    public array $error = [];
 
     public function __construct()
     {
-        $this->db = new Database();
     }
 
-    public function index(ServerRequestInterface $request): ResponseInterface
+    private function _linkGeneruj($ticker, $funkcja): string
     {
-        $params = $request->getQueryParams();
-        $tryb = $params['tryb'] ?? null;
-        $tickerInput = $params['ticker'] ?? null;
+        return "https://www.biznesradar.pl/{$funkcja}/{$ticker}";
+    }
 
-        if ($tryb === 'sprawozdania' && !empty($tickerInput)) {
-            $oBRAPI = new Biznesradar();
-            $dzielnik = 1000000;
-            $sprawozdania = $oBRAPI->sprawozdania($tickerInput);
-
-            if (!empty($sprawozdania) && is_array($sprawozdania)) {
-                foreach ($sprawozdania as $data => $sprawozdanie) {
-                    $dataSkr = substr($data, 0, 4) . '-01-01';
-
-                    $rekord = [
-                        'ticker'       => htmlspecialchars($tickerInput),
-                        'typ'          => 0,
-                        'data'         => htmlspecialchars($dataSkr),
-                        'tRevenue'     => ($sprawozdanie['Przychody ze sprzedaży'] ?? 0) / $dzielnik,
-                        'COGS'         => ($sprawozdanie['Techniczny koszt wytworzenia produkcji sprzedanej'] ?? 0) / $dzielnik,
-                        'nIncome'      => ($sprawozdanie['Zysk netto'] ?? 0) / $dzielnik,
-                        'oIncome'      => ($sprawozdanie['Zysk operacyjny (EBIT)'] ?? 0) / $dzielnik,
-                        'depreciation' => (($sprawozdanie['EBITDA'] ?? 0) - ($sprawozdanie['Zysk operacyjny (EBIT)'] ?? 0)) / $dzielnik,
-                        'EBITDA'       => ($sprawozdanie['EBITDA'] ?? 0) / $dzielnik,
-                    ];
-
-                    // Pobranie ID za pomocą nowej składni: select(...) + jako('komorka') z warunkami w tablicy
-                    $id = $this->db->select(
-                        'raporty', 
-                        ['id'], 
-                        [
-                            'ticker' => $tickerInput, 
-                            'typ' => 0, 
-                            'data' => $dataSkr
-                        ]
-                    )->jako('komorka');
-
-                    if (empty($id)) {
-                        $this->db->insert('raporty', $rekord);
-                    } else {
-                        $this->db->update('raporty', $rekord, ['id' => $id]);
-                    }
-                }
-
-                $this->db->update('tickery', ['czasFA' => null], ['ticker' => $tickerInput]);
-
-                return new Response(200, ['Content-Type' => 'text/plain; charset=utf-8'], 'OK');
-            }
-
-            $payload = json_encode([
-                'status' => 'error',
-                'message' => 'Brak danych sprawozdań',
-                'errors' => $oBRAPI->error
-            ], JSON_UNESCAPED_UNICODE);
-
-            return new Response(400, ['Content-Type' => 'application/json; charset=utf-8'], $payload);
+    private function _get($ticker, $funkcja)
+    {
+        $url = $this->_linkGeneruj($ticker, $funkcja);
+        
+        $options = [
+            'http' => [
+                'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
+            ]
+        ];
+        $context = stream_context_create($options);
+        
+        $html = @file_get_contents($url, false, $context);
+        if ($html === false) {
+            $this->error[] = "Nie udało się pobrać danych dla tickera: {$ticker}";
+            return false;
         }
 
-        return new Response(400, ['Content-Type' => 'application/json; charset=utf-8'], json_encode([
-            'status' => 'error',
-            'message' => 'Nieprawidłowy tryb lub brak tickera'
-        ]));
+        $oDOM = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $oDOM->loadHTML($html);
+        libxml_clear_errors();
+        
+        $oXPath = new DOMXPath($oDOM);
+        $tabela = $oXPath->query('//table[contains(@class, "report-table")]')->item(0);
+        
+        if (!$tabela) {
+            $this->error[] = "Nie znaleziono tabeli raportu finansowego dla: {$ticker}";
+            return false;
+        }
+
+        $tablica = [];
+        $wiersze = $oXPath->query('.//tr', $tabela);
+
+        foreach ($wiersze as $wNumer => $wiersz) {
+            if ($wNumer > 0) {
+                $komorki = $oXPath->query('.//td', $wiersz);
+                if ($komorki->length > 0) {
+                    $klucz = trim($komorki->item(0)->nodeValue);
+                    for ($kNumer = 1; $kNumer < $komorki->length; $kNumer++) {
+                        $tablica[$kNumer - 1][$klucz] = trim($komorki->item($kNumer)->nodeValue);
+                    }
+                }
+            }
+        }
+
+        // Ustawianie daty przyszłej dla 12TTM (powtarzający się rok publikacji)
+        $poprzedniRok = 0;
+        foreach ($tablica as $klucz => $wiersz) {
+            if (!isset($wiersz['Data publikacji'])) continue;
+            $aktualnyRok = substr($wiersz['Data publikacji'], 0, 4);
+            if ($aktualnyRok == $poprzedniRok) {
+                $nastepnyRok = (int)$aktualnyRok + 1;
+                $tablica[$klucz]['Data publikacji'] = "{$nastepnyRok}-01-01";
+            }
+            $poprzedniRok = $aktualnyRok;
+        }
+
+        $wynik = [];
+        foreach ($tablica as $wiersz) {
+            if (!isset($wiersz['Data publikacji'])) continue;
+            $dataPub = $wiersz['Data publikacji'];
+            $wynik[$dataPub] = $wiersz;
+
+            foreach ($wiersz as $klucz => $wartosc) {
+                if (preg_match('/-?\d[\d\s]*\.?\d*/', $wartosc, $wyniki)) {
+                    $wartosc = str_replace(' ', '', $wyniki[0]);
+                } else {
+                    $wartosc = 0;
+                }
+                $wynik[$dataPub][$klucz] = $wartosc;
+            }
+            unset($wynik[$dataPub]['Data publikacji']);
+
+            // Wyliczenia pól uzupełniających, jeśli brakuje ich w tabeli
+            if (!isset($wynik[$dataPub]['Przychody ze sprzedaży'])) {
+                $wynik[$dataPub]['Przychody ze sprzedaży'] = 
+                    ($wynik[$dataPub]['Przychody odsetkowe'] ?? 0) + 
+                    ($wynik[$dataPub]['Przychody prowizyjne'] ?? 0) + 
+                    ($wynik[$dataPub]['Wynik handlowy i rewaluacja'] ?? 0) + 
+                    ($wynik[$dataPub]['Pozostałe przychody operacyjne'] ?? 0) + 
+                    ($wynik[$dataPub]['Przychody z tytułu dywidend'] ?? 0);
+            }
+            if (!isset($wynik[$dataPub]['Techniczny koszt wytworzenia produkcji sprzedanej'])) {
+                $wynik[$dataPub]['Techniczny koszt wytworzenia produkcji sprzedanej'] = 
+                    ($wynik[$dataPub]['Koszty odsetkowe'] ?? 0) + 
+                    ($wynik[$dataPub]['Koszty prowizyjne'] ?? 0);
+            }
+            if (!isset($wynik[$dataPub]['Zysk operacyjny (EBIT)'])) {
+                $wynik[$dataPub]['Zysk operacyjny (EBIT)'] = $wynik[$dataPub]['Wynik operacyjny'] ?? 0;
+            }
+        }
+        
+        unset($wynik['']);
+        return $wynik;
+    }
+
+    public function _ticker($ticker): string
+    {
+        $podmianki = ['AMB.WA' => 'AMBRA'];
+        
+        if (array_key_exists($ticker, $podmianki)) {
+            return $podmianki[$ticker];
+        }
+            
+        $koncowka = explode('.', $ticker);
+        return count($koncowka) == 1 ? $ticker : $koncowka[0];
+    }
+
+    public function sprawozdania(string $ticker)
+    {
+        return $this->_get($this->_ticker($ticker), 'raporty-finansowe-rachunek-zyskow-i-strat');
     }
 }
