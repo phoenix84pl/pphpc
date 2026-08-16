@@ -1,0 +1,5 @@
+# Ignoruj absolutnie wszystko w tym katalogu
+*
+
+# Oprócz tego pliku .gitignore, żeby Git nie zgubił pustego katalogu
+!.gitignore
