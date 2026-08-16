@@ -23,15 +23,24 @@ class Bootstrap
             }
         }
 
+        // --- GLOBALNE LOGOWANIE BŁĘDÓW PHP DO PLIKU ---
+        $tmpDir = $baseDir . '/tmp';
+        if (!is_dir($tmpDir)) {
+            mkdir($tmpDir, 0755, true);
+        }
+        
+        ini_set('log_errors', '1');
+        ini_set('error_log', $tmpDir . '/php_error.log');
+        error_reporting(E_ALL);
+
         // 3. Obsługa trybu APP_DEBUG z .env
         $isDebug = ($_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG')) == '1';
 
         if ($isDebug) {
             ini_set('display_errors', '1');
             ini_set('display_startup_errors', '1');
-            error_reporting(E_ALL);
 
-            // Rejestracja globalnego handlera, aby niezłapane błędy i wyjątki były widoczne na ekranie
+            // Rejestracja globalnego handlera w trybie DEBUG (pokazuje błąd na ekranie)
             set_exception_handler(function (\Throwable $e) {
                 http_response_code(500);
                 echo "<div style='background: #1e1e1e; color: #f8f8f2; padding: 20px; font-family: monospace; font-size: 14px; line-height: 1.5; border-left: 5px solid #ff5555; margin: 20px;'>";
@@ -46,7 +55,16 @@ class Bootstrap
         } else {
             ini_set('display_errors', '0');
             ini_set('display_startup_errors', '0');
-            error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+
+            // Rejestracja globalnego handlera na PRODUKCJĘ (cicho zapisuje w tle, użytkownik widzi bezpieczny komunikat)
+            set_exception_handler(function (\Throwable $e) {
+                http_response_code(500);
+                echo "<div style='background: #fdf2f2; color: #9b1c1c; padding: 20px; font-family: sans-serif; text-align: center; margin: 40px; border: 1px solid #f8b4b4; border-radius: 6px;'>";
+                echo "<h2>Wystąpił błąd aplikacji</h2>";
+                echo "<p>Przepraszamy, coś poszło nie tak. Administrator został powiadomiony o problemie.</p>";
+                echo "</div>";
+                exit;
+            });
         }
 
         // 4. Domyślna instancja bazy
