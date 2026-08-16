@@ -9,7 +9,7 @@ table > tbody > tr > td {padding: 0;}
 #CMSMain	{height: 100%; width: 100%; position: relative;}
 #CMLloader	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; text-align: center; overflow: hidden; display: none;}
 #CMSIntro	{position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: white; background-image: url("../img/bg/CMSIntro.jpg"); background-position: center; background-size: cover; text-align: center; }
-#CMSHeader	{position: absolute; top: 0; left: 0; width: calc(100% - 10px); height: 20px; padding: 0 5px; background: #000000; border-bottom: 1px solid purple; color: white; text-align: right;}
+#CMSHeader {position: absolute; top: 0; left: 0; width: 100%; height: 20px; padding: 0 5px; box-sizing: border-box; background: #000000; color: white; display: flex; align-items: center; justify-content: space-between;}
 #CMSHeader a	{color: #ffffff; text-decoration: none;}
 #CMSLogo img	{width: 16px; height: 16px; padding: 5px;}
 #CMSUI	{position: absolute; top: 20px; left: 0; height: calc(100% - 20px); width: 100%; overflow: hidden; background-image: url("../img/bg/CMSUI.jpg"); background-position: center; background-size: cover;}
@@ -56,6 +56,32 @@ table > tbody > tr > td {padding: 0;}
 
 /*tabela*/
 .CMSTRSeparator {position: relative; border: none;} .CMSTRSeparator::after {content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);}
+
+/* Scroll */
+.CMSScroll {
+    overflow: auto;
+    width: 100%;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
+
+.CMSScrollX {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
+
+.CMSScrollY {				/*UWAGA! Zazwyczaj nie zadziała jeśli będzie gdzieś w drzewie CMSWnetrze, albo musi być przed pierwszym CMSWnetrze, albo któryś z naddivów między tym a CMSWnetrze musi mieć ustawiony max-height*/
+    overflow-y: auto;
+    overflow-x: hidden;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
+}
 
 /*input*/
 
@@ -337,33 +363,6 @@ table > tbody > tr > td {padding: 0;}
     cursor: pointer;
     width: 3em;
     height: 3em;
-}
-
-
-/* Scroll */
-.CMSScroll {
-    overflow: auto;
-    width: 100%;
-    
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
-}
-
-.CMSScrollX {
-    overflow-x: auto;
-    overflow-y: hidden;
-    width: 100%;
-    
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
-}
-
-.CMSScrollY {				/*UWAGA! Zazwyczaj nie zadziała jeśli będzie gdzieś w drzewie CMSWnetrze, albo musi być przed pierwszym CMSWnetrze, albo któryś z naddivów między tym a CMSWnetrze musi mieć ustawiony max-height*/
-    overflow-y: auto;
-    overflow-x: hidden;
-    
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.3);
 }
 
 /*tmp*/
