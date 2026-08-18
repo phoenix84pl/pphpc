@@ -6,7 +6,7 @@ namespace Phoenix\Core\Library;
  * ET - eToro API Client (PHP port)
  * Wersja 3.2
  */
-class ET
+class Etoro
 {
     const VERSION = '3.2';
 

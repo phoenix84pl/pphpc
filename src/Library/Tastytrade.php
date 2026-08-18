@@ -2,7 +2,7 @@
 
 namespace Phoenix\Core\Library;
 
-class TT
+class Tastytrade
 {
     private $__version__ = "1.1";
     private $refresh_token;

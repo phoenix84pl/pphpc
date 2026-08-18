@@ -2,7 +2,7 @@
 
 namespace Phoenix\Core\Library;
 
-class T212
+class Trading212
 {
     private $login;
     private $haslo;
