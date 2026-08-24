@@ -20,6 +20,7 @@ class Exante
         'AMEX' => '',
         'BATS' => '',
 
+        'TSE' => '.T',
         'TMX' => '.TO',
         'ASX' => '.AX',
         'SGX' => '.SI',
