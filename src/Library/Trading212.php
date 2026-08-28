@@ -13,7 +13,10 @@ class Trading212
     // Tablica wyjątków konwersji tickerów (Yahoo → T212 base)
     private $tMapa = [
         'HY9H.F' => 'HY9H',     // Frankfurt zamiast .DE
+        'DN3.F' => 'DN3',       // Frankfurt zamiast .DE
         'FDR.MC' => 'FDR',      // klasa zwraca .SW zamiast .MC
+        'BTCW.L' => 'BTCW',    // BTCW.L zwraca jako BTCW.SW
+        'ETHW.L' => 'ETHW'     // ETHW.L klasa zwraca jako ETHW.SW     
     ];
     
     public function __construct($login, $haslo)
