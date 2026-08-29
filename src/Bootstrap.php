@@ -70,8 +70,8 @@ class Bootstrap
                     require $errorViewCore;
                 } else {
                     echo "<div style='background: #fdf2f2; color: #9b1c1c; padding: 20px; font-family: sans-serif; text-align: center; margin: 40px; border: 1px solid #f8b4b4; border-radius: 6px;'>";
-                    echo "<h2>Wystąpił błąd aplikacji</h2>";
-                    echo "<p>Przepraszamy, coś poszło nie tak. Administrator został powiadomiony o problemie.</p>";
+                    echo "<h2>Application Error</h2>";
+                    echo "<p>Sorry, something went wrong. The administrator has been notified.</p>";
                     echo "</div>";
                 }
                 exit;

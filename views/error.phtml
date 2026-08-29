@@ -6,24 +6,24 @@ $code = $errorCode ?? http_response_code() ?: 500;
 
 // Słownik błędów
 $errorMessages = [
-    400 => ['title' => 'Nieprawidłowe żądanie', 'description' => 'Twoje żądanie nie mogło zostać zrozumiane przez serwer.'],
-    401 => ['title' => 'Brak autoryzacji', 'description' => 'Musisz się zalogować, aby uzyskać dostęp do tej strony.'],
-    403 => ['title' => 'Odmowa dostępu', 'description' => 'Nie masz uprawnień do przeglądania tego zasobu.'],
-    404 => ['title' => 'Strona nie znaleziona', 'description' => 'Przepraszamy, ale strona, której szukasz, nie istnieje.'],
-    500 => ['title' => 'Wewnętrzny błąd serwera', 'description' => 'Wystąpił nieoczekiwany problem z serwerem. Administratorzy zostali powiadomieni.'],
-    502 => ['title' => 'Błędna brama', 'description' => 'Serwer, działając jako brama, otrzymał nieprawidłową odpowiedź od serwera nadrzędnego.'],
-    503 => ['title' => 'Usługa niedostępna', 'description' => 'Serwer jest obecnie przeciążony lub w trakcie konserwacji. Spróbuj ponownie później.'],
+    400 => ['title' => 'Bad Request', 'description' => 'Your request could not be understood by the server.'],
+    401 => ['title' => 'Unauthorized', 'description' => 'You must log in to access this page.'],
+    403 => ['title' => 'Forbidden', 'description' => 'You do not have permission to view this resource.'],
+    404 => ['title' => 'Page Not Found', 'description' => 'Sorry, but the page you are looking for does not exist.'],
+    500 => ['title' => 'Internal Server Error', 'description' => 'An unexpected problem occurred on the server. Administrators have been notified.'],
+    502 => ['title' => 'Bad Gateway', 'description' => 'The server, while acting as a gateway, received an invalid response from the upstream server.'],
+    503 => ['title' => 'Service Unavailable', 'description' => 'The server is currently overloaded or under maintenance. Please try again later.'],
 ];
 
 // Domyślne wartości, jeśli kodu nie ma w słowniku
-$errorTitle = $errorMessages[$code]['title'] ?? 'Wystąpił błąd';
-$errorDescription = $errorMessages[$code]['description'] ?? 'Przepraszamy, coś poszło nie tak.';
+$errorTitle = $errorMessages[$code]['title'] ?? 'An Error Occurred';
+$errorDescription = $errorMessages[$code]['description'] ?? 'Sorry, something went wrong.';
 
 // Pobieranie ścieżki do logo
 $logoPath = $_ENV['META_TEXTICON'] ?? getenv('META_TEXTICON') ?: '';
 ?>
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,8 +63,8 @@ $logoPath = $_ENV['META_TEXTICON'] ?? getenv('META_TEXTICON') ?: '';
         }
 
         .error-logo {
-            max-width: 200px;
-            max-height: 80px;
+            max-width: 320px;
+            max-height: 120px;
             margin-bottom: 2rem;
             object-fit: contain;
         }
@@ -120,7 +120,7 @@ $logoPath = $_ENV['META_TEXTICON'] ?? getenv('META_TEXTICON') ?: '';
         <h2 class="error-title"><?= htmlspecialchars($errorTitle) ?></h2>
         <p class="error-description"><?= htmlspecialchars($errorDescription) ?></p>
 
-        <a href="/" class="btn-home">Wróć do strony głównej</a>
+        <a href="/" class="btn-home">Return to Home</a>
     </div>
 </body>
 </html>
