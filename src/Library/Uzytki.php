@@ -14,6 +14,8 @@ namespace Phoenix\Core\Library;
 20260318	+wygladz()
 20260319	+AIGeneruj(), DEPRECATED wszystkie select/option generuj
 20260321	+round()
+20260829	+linear w stdev
+20260829	-include2str()
 
 */
 
@@ -460,16 +462,16 @@ class Uzytki
 		}
 	}
 	
-	public static function stDevGeneruj($dane)
+	public static function stDevGeneruj($dane, $scale = 'linear')
 	{
-		//funkcja generuje dane regresji wraz z odchyleniami standardowymi dla tablicy liniowej
+		//funkcja generuje dane regresji wraz z odchyleniami standardowymi dla tablicy liniowej lub logarytmicznej
 		// Filtruj dane - usuń null i zachowaj indeksy
 		$daneFiltrowane = [];
 		$indeksyFiltrowane = [];
 		
 		foreach ($dane as $i => $wartosc) {
-			if ($wartosc !== null) {
-				$daneFiltrowane[] = $wartosc;
+			if ($wartosc !== null && $wartosc > 0) { // ignorujemy również <= 0, bo log() nie istnieje
+				$daneFiltrowane[] = ($scale === 'logarithmic') ? log($wartosc) : $wartosc;
 				$indeksyFiltrowane[] = $i;
 			}
 		}
@@ -499,7 +501,8 @@ class Uzytki
 			$regresja = [];
 			$nOryginalny = count($dane);
 			for ($i = 0; $i < $nOryginalny; $i++) {
-				$regresja[] = $slope * $i + $intercept;
+				$val = $slope * $i + $intercept;
+				$regresja[] = ($scale === 'logarithmic') ? exp($val) : $val;
 			}
 
 			// Oblicz odchylenie standardowe tylko na podstawie nie-null wartości
@@ -518,16 +521,24 @@ class Uzytki
 			$dwaOdchyleniaDol = [];
 
 			for ($i = 0; $i < $nOryginalny; $i++) {
-				$odchyleniaGora[] = $regresja[$i] + $odchylenieStandardowe;
-				$odchyleniaDol[] = $regresja[$i] - $odchylenieStandardowe;
-				$dwaOdchyleniaGora[] = $regresja[$i] + 2 * $odchylenieStandardowe;
-				$dwaOdchyleniaDol[] = $regresja[$i] - 2 * $odchylenieStandardowe;
+				$valRegresja = $slope * $i + $intercept;
+				
+				$valGora1 = $valRegresja + $odchylenieStandardowe;
+				$valDol1 = $valRegresja - $odchylenieStandardowe;
+				$valGora2 = $valRegresja + 2 * $odchylenieStandardowe;
+				$valDol2 = $valRegresja - 2 * $odchylenieStandardowe;
+
+				$odchyleniaGora[] = ($scale === 'logarithmic') ? exp($valGora1) : $valGora1;
+				$odchyleniaDol[] = ($scale === 'logarithmic') ? exp($valDol1) : $valDol1;
+				$dwaOdchyleniaGora[] = ($scale === 'logarithmic') ? exp($valGora2) : $valGora2;
+				$dwaOdchyleniaDol[] = ($scale === 'logarithmic') ? exp($valDol2) : $valDol2;
 			}
 
 			return ['0'=>$regresja, '1'=>$odchyleniaGora, '-1'=>$odchyleniaDol, '2'=>$dwaOdchyleniaGora, '-2'=>$dwaOdchyleniaDol];
 		}
 	}
-	
+
+/*
 	public static function include2str($sciezka, $globals=NULL)
 	{
 		//funkcja zwraca przetworzony plik PHP ze ścieżki
@@ -538,6 +549,7 @@ class Uzytki
 		include $sciezka;
 		return ob_get_clean();
 	}
+*/
 	
 	public static function wygladz($dane)
 	{
