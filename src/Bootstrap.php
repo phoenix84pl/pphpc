@@ -57,12 +57,23 @@ class Bootstrap
             ini_set('display_startup_errors', '0');
 
             // Rejestracja globalnego handlera na PRODUKCJĘ (cicho zapisuje w tle, użytkownik widzi bezpieczny komunikat)
-            set_exception_handler(function (\Throwable $e) {
+            set_exception_handler(function (\Throwable $e) use ($baseDir) {
                 http_response_code(500);
-                echo "<div style='background: #fdf2f2; color: #9b1c1c; padding: 20px; font-family: sans-serif; text-align: center; margin: 40px; border: 1px solid #f8b4b4; border-radius: 6px;'>";
-                echo "<h2>Wystąpił błąd aplikacji</h2>";
-                echo "<p>Przepraszamy, coś poszło nie tak. Administrator został powiadomiony o problemie.</p>";
-                echo "</div>";
+                $errorCode = 500;
+
+                $errorViewApp = $baseDir . '/views/error.phtml';
+                $errorViewCore = dirname(__DIR__) . '/views/error.phtml';
+
+                if (file_exists($errorViewApp)) {
+                    require $errorViewApp;
+                } elseif (file_exists($errorViewCore)) {
+                    require $errorViewCore;
+                } else {
+                    echo "<div style='background: #fdf2f2; color: #9b1c1c; padding: 20px; font-family: sans-serif; text-align: center; margin: 40px; border: 1px solid #f8b4b4; border-radius: 6px;'>";
+                    echo "<h2>Wystąpił błąd aplikacji</h2>";
+                    echo "<p>Przepraszamy, coś poszło nie tak. Administrator został powiadomiony o problemie.</p>";
+                    echo "</div>";
+                }
                 exit;
             });
         }

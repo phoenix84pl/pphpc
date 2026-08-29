@@ -1,0 +1,126 @@
+<?php
+// pphpc/views/error.phtml
+
+// Oczekujemy zmiennej $errorCode przekazywanej z miejsca wywołania (Router lub Bootstrap)
+$code = $errorCode ?? http_response_code() ?: 500;
+
+// Słownik błędów
+$errorMessages = [
+    400 => ['title' => 'Nieprawidłowe żądanie', 'description' => 'Twoje żądanie nie mogło zostać zrozumiane przez serwer.'],
+    401 => ['title' => 'Brak autoryzacji', 'description' => 'Musisz się zalogować, aby uzyskać dostęp do tej strony.'],
+    403 => ['title' => 'Odmowa dostępu', 'description' => 'Nie masz uprawnień do przeglądania tego zasobu.'],
+    404 => ['title' => 'Strona nie znaleziona', 'description' => 'Przepraszamy, ale strona, której szukasz, nie istnieje.'],
+    500 => ['title' => 'Wewnętrzny błąd serwera', 'description' => 'Wystąpił nieoczekiwany problem z serwerem. Administratorzy zostali powiadomieni.'],
+    502 => ['title' => 'Błędna brama', 'description' => 'Serwer, działając jako brama, otrzymał nieprawidłową odpowiedź od serwera nadrzędnego.'],
+    503 => ['title' => 'Usługa niedostępna', 'description' => 'Serwer jest obecnie przeciążony lub w trakcie konserwacji. Spróbuj ponownie później.'],
+];
+
+// Domyślne wartości, jeśli kodu nie ma w słowniku
+$errorTitle = $errorMessages[$code]['title'] ?? 'Wystąpił błąd';
+$errorDescription = $errorMessages[$code]['description'] ?? 'Przepraszamy, coś poszło nie tak.';
+
+// Pobieranie ścieżki do logo
+$logoPath = $_ENV['META_TEXTICON'] ?? getenv('META_TEXTICON') ?: '';
+?>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars((string)$code) ?> - <?= htmlspecialchars($errorTitle) ?></title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --text-color: #f5f5f5;
+            --text-muted: #aaaaaa;
+            --accent-color: #6c5ce7;
+            --accent-hover: #5f4cd6;
+            --error-color: #ff5252;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .error-container {
+            background-color: var(--container-bg);
+            padding: 3rem 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            border-top: 5px solid var(--error-color);
+        }
+
+        .error-logo {
+            max-width: 200px;
+            max-height: 80px;
+            margin-bottom: 2rem;
+            object-fit: contain;
+        }
+
+        .error-code {
+            font-size: 5rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1;
+            color: var(--error-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+
+        .error-description {
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-home:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-home:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <?php if (!empty($logoPath)): ?>
+            <img src="<?= htmlspecialchars($logoPath) ?>" alt="Logo Serwisu" class="error-logo">
+        <?php endif; ?>
+
+        <h1 class="error-code"><?= htmlspecialchars((string)$code) ?></h1>
+        <h2 class="error-title"><?= htmlspecialchars($errorTitle) ?></h2>
+        <p class="error-description"><?= htmlspecialchars($errorDescription) ?></p>
+
+        <a href="/" class="btn-home">Wróć do strony głównej</a>
+    </div>
+</body>
+</html>

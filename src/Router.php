@@ -131,7 +131,22 @@ class Router
             ]));
         }
         
-        return new Response(404, [], '<h1>404 - Not Found (Phoenix Core)</h1>');
+        $errorCode = 404;
+        ob_start();
+
+        $errorViewApp = $this->viewsPath . '/error.phtml';
+        $errorViewCore = $this->coreViewsPath . '/error.phtml';
+
+        if (file_exists($errorViewApp)) {
+            require $errorViewApp;
+        } elseif (file_exists($errorViewCore)) {
+            require $errorViewCore;
+        } else {
+            echo '<h1>404 - Not Found</h1>';
+        }
+
+        $content = ob_get_clean();
+        return new Response(404, [], $content);
     }
 
     private function executeHandler(mixed $handler, ServerRequestInterface $request): ResponseInterface
@@ -165,6 +180,21 @@ class Router
             }
         }
 
-        return new Response(500, [], '<h1>500 - Invalid Handler Configuration</h1>');
+        $errorCode = 500;
+        ob_start();
+
+        $errorViewApp = $this->viewsPath . '/error.phtml';
+        $errorViewCore = $this->coreViewsPath . '/error.phtml';
+
+        if (file_exists($errorViewApp)) {
+            require $errorViewApp;
+        } elseif (file_exists($errorViewCore)) {
+            require $errorViewCore;
+        } else {
+            echo '<h1>500 - Invalid Handler Configuration</h1>';
+        }
+
+        $content = ob_get_clean();
+        return new Response(500, [], $content);
     }
 }
