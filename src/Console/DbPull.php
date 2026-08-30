@@ -2,7 +2,7 @@
 
 namespace Phoenix\Core\Console;
 
-class DbPullData
+class DbPull
 {
     public static function run(string $baseDir): void
     {
