@@ -20,22 +20,35 @@ class DbPullData
             mkdir($localDir, 0755, true);
         }
 
-        $localFile = $localDir . '/data.sql';
-        $remoteFile = rtrim($remotePath, '/') . '/database/data.sql';
+        echo "🚀 Rozpoczynam pobieranie bazy danych z serwera: {$remoteHost}\n";
+        echo "--------------------------------------------------\n";
 
-        echo "📥 Sprawdzanie rozmiaru pliku na serwerze {$remoteHost}...\n";
+        // Pobierz najpierw schemat, potem dane
+        self::pullFile($remoteHost, $remotePath, $localDir, 'schema.sql');
+        echo "\n";
+        self::pullFile($remoteHost, $remotePath, $localDir, 'data.sql');
+
+        echo "✅ Pobieranie bazy danych (schema i data) zakończone!\n";
+    }
+
+    private static function pullFile(string $remoteHost, string $remotePath, string $localDir, string $fileName): void
+    {
+        $localFile = $localDir . '/' . $fileName;
+        $remoteFile = rtrim($remotePath, '/') . '/database/' . $fileName;
+
+        echo "📥 Sprawdzanie {$fileName} na serwerze...\n";
 
         // 1. Pobieramy rozmiar zdalnego pliku przez SSH, żeby znać 100%
         $sizeCmd = sprintf('ssh %s "stat -c%%s %s 2>/dev/null"', escapeshellarg($remoteHost), escapeshellarg($remoteFile));
         $totalBytes = (int) trim((string) shell_exec($sizeCmd));
 
         if ($totalBytes <= 0) {
-            echo "❌ Błąd: Nie można odczytać pliku zdalnego lub plik jest pusty ({$remoteFile})\n";
-            exit(1);
+            echo "⚠️  Plik {$fileName} nie istnieje na serwerze lub jest pusty. Pomijam.\n";
+            return;
         }
 
         $totalMb = round($totalBytes / (1024 * 1024), 2);
-        echo "📦 Pobieranie database/data.sql ({$totalMb} MB)...\n\n";
+        echo "📦 Pobieranie database/{$fileName} ({$totalMb} MB)...\n\n";
 
         $startTime = microtime(true);
 
@@ -45,8 +58,8 @@ class DbPullData
         $destHandle = fopen($localFile, 'w');
 
         if (!$srcHandle || !$destHandle) {
-            echo "❌ Błąd otwarcia strumienia pobierania.\n";
-            exit(1);
+            echo "❌ Błąd otwarcia strumienia pobierania dla {$fileName}.\n";
+            return;
         }
 
         $downloadedBytes = 0;
@@ -67,7 +80,7 @@ class DbPullData
                 
                 $bar = str_repeat('█', $filledLength) . str_repeat('░', $barLength - $filledLength);
                 
-                $currentMb = round($downloadedBytes / (1024 * 1024), 1);
+                $currentMb = round($downloadedBytes / (1024 * 1024), 2);
                 
                 // \r cofa kursor na początek linii w terminalu
                 printf("\r⏳ [%s] %3d%%  (%s / %s MB)", $bar, $percent, $currentMb, $totalMb);
@@ -88,16 +101,12 @@ class DbPullData
             $mbSize = round($bytes / (1024 * 1024), 2);
             $speed = $duration > 0 ? round($mbSize / $duration, 2) : $mbSize;
 
-            echo "✅ Pobieranie zakończone sukcesem!\n";
-            echo "--------------------------------------------------\n";
-            echo "📄 Cel lokalny    : database/data.sql\n";
-            echo "📊 Rozmiar pliku  : {$mbSize} MB ({$bytes} B)\n";
-            echo "⏱️ Czas trwania   : {$duration} s\n";
-            echo "⚡ Średnia prędkość: {$speed} MB/s\n";
-            echo "--------------------------------------------------\n";
+            echo "✅ Pobrano {$fileName}:\n";
+            echo "   Rozmiar: {$mbSize} MB | Czas: {$duration} s | Prędkość: {$speed} MB/s\n";
         } else {
-            echo "❌ Błąd podczas pobierania pliku.\n";
-            exit(1);
+            echo "❌ Błąd podczas pobierania pliku {$fileName}.\n";
         }
     }
 }
+
+Approve plan?
