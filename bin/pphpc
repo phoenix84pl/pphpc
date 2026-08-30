@@ -29,7 +29,7 @@ if (class_exists('\Phoenix\Core\Bootstrap')) {
 
 // Rejestr dostępnych komend
 $commands = [
-    'db:pull'         => \Phoenix\Core\Console\DbPullData::class,
+    'db:pull'         => \Phoenix\Core\Console\DbPull::class,
     'db:import'       => \Phoenix\Core\Console\DbImportData::class,
     'db:sync-schema'  => \Phoenix\Core\Console\DbSyncSchema::class,
     'db:dump-data'    => \Phoenix\Core\Console\DbDumpData::class,
