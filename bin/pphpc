@@ -22,6 +22,11 @@ if (file_exists($baseDir . '/.env')) {
     }
 }
 
+// ZAINICJALIZUJ BOOTSTRAP, ŻEBY OBIEKT BAZY $GLOBALS['db'] BYŁ DOSTĘPNY
+if (class_exists('\Phoenix\Core\Bootstrap')) {
+    \Phoenix\Core\Bootstrap::init($baseDir);
+}
+
 // Rejestr dostępnych komend
 $commands = [
     'db:pull'         => \Phoenix\Core\Console\DbPullData::class,
