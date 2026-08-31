@@ -176,7 +176,6 @@ class Exante
         try {
             $free_money = floatval($dane['freeMoney'] ?? 0);
             $net_asset_value = floatval($dane['netAssetValue'] ?? 0);
-            $inwestycja = $net_asset_value - $free_money;
             
             $bilans = 0;
             if (isset($dane['positions']) && is_array($dane['positions'])) {
@@ -184,7 +183,9 @@ class Exante
                     $bilans += floatval($pos['convertedPnl'] ?? 0);
                 }
             }
-            
+
+            $inwestycja = $net_asset_value - $free_money - $bilans;
+
             return [
                 'saldo' => $free_money,
                 'inwestycja' => $inwestycja,
