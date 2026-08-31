@@ -188,8 +188,8 @@ class Tastytrade
             $wynik[$ticker] = [
                 'tickerBroker' => $ticker,
                 'wolumen' => floatval($rekord['quantity'] ?? 0),
-                'open' => floatval($rekord['average-open-price'] ?? 0),
-                'close' => floatval($rekord['close-price'] ?? 0),
+                'openTicker' => floatval($rekord['average-open-price'] ?? 0),
+                'closeTicker' => floatval($rekord['close-price'] ?? 0),
                 'bilans' => floatval($rekord['realized-day-gain'] ?? 0),
                 'odKiedy' => $czas->getTimestamp()
             ];

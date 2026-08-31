@@ -394,8 +394,8 @@ class Etoro
                 $e = &$tempPositions[$ticker];
                 $newTotal = $e['wolumen'] + $units;
                 if ($newTotal > 0) {
-                    $e['open']  = ($e['open']  * $e['wolumen'] + $openRate  * $units) / $newTotal;
-                    $e['close'] = ($e['close'] * $e['wolumen'] + $closeRate * $units) / $newTotal;
+                    $e['openTicker']  = ($e['openTicker']  * $e['wolumen'] + $openRate  * $units) / $newTotal;
+                    $e['closeTicker'] = ($e['closeTicker'] * $e['wolumen'] + $closeRate * $units) / $newTotal;
                 }
                 $e['wolumen'] += $units;
                 $e['bilans']  += $pnl;
@@ -408,8 +408,8 @@ class Etoro
                 $tempPositions[$ticker] = [
                     'tickerBroker' => $idStr,
                     'wolumen'      => $units,
-                    'open'         => $openRate,
-                    'close'        => $closeRate,
+                    'openTicker'   => $openRate,
+                    'closeTicker'  => $closeRate,
                     'bilans'       => $pnl,
                     'odKiedy'      => $timestamp,
                     'zrodlo'       => 'ET',

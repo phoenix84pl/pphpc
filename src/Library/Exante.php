@@ -222,8 +222,8 @@ class Exante
             $r = [
                 'tickerBroker' => $symbol_broker,
                 'wolumen' => floatval($rekord['quantity'] ?? 0),
-                'open' => floatval($rekord['averagePrice'] ?? 0),
-                'close' => floatval($rekord['price'] ?? 0),
+                'openTicker' => floatval($rekord['averagePrice'] ?? 0),
+                'closeTicker' => floatval($rekord['price'] ?? 0),
                 'bilans' => floatval($rekord['convertedPnl'] ?? 0),
                 'zrodlo' => 'Exante'
             ];

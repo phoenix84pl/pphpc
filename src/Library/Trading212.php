@@ -260,11 +260,11 @@ class Trading212
                 unset($rekord['quantity']);
             }
             if (isset($rekord['averagePrice'])) {
-                $rekord['open'] = $rekord['averagePrice'];
+                $rekord['openTicker'] = $rekord['averagePrice'];
                 unset($rekord['averagePrice']);
             }
             if (isset($rekord['currentPrice'])) {
-                $rekord['close'] = $rekord['currentPrice'];
+                $rekord['closeTicker'] = $rekord['currentPrice'];
                 unset($rekord['currentPrice']);
             }
             if (isset($rekord['ppl'])) {
