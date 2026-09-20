@@ -39,6 +39,8 @@ table > tbody > tr > td {padding: 0;}
 .CMSBottom	{vertical-align:bottom;}
 .CMSFlex	{display: flex;}
 .CMSBold	{font-weight: bold;}
+.CMSPadding	{padding: 10px;}
+.CMSFitContent { width: fit-content; }
 
 .CMSSekcja	{font-size: 1.5em; padding: 10px; font-weight: 700;}
 .CMSTytul	{font-size: 1.5em; padding: 10px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 0.5em;}
