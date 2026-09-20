@@ -359,7 +359,7 @@ function CMSDivAkcjaAktualizuj(wykonaj, link, div, callback=null, czyKomunikat=f
     });
 }
 
-function CMSWykresGeneruj(kontener, dane)
+function CMSWykresGeneruj(kontener, dane, typ = 'line')
 {
     if (!kontener) return;
 
@@ -388,7 +388,7 @@ function CMSWykresGeneruj(kontener, dane)
         dane.options.responsive = true;
         dane.options.maintainAspectRatio = false;
         
-        return new Chart(canvas, {type: 'line', data: dane.data, options: dane.options});
+        return new Chart(canvas, {type: typ, data: dane.data, options: dane.options});
     }
     
     const needsAdapter = Object.values(dane.options?.scales || {}).some(s => s.type === 'time');

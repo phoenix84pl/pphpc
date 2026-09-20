@@ -9,6 +9,7 @@ namespace Phoenix\Core\Library;
 class Wykres
 {
 	private $_id=NULL;			//id wykresu
+	public $typ = 'line';		//typ wykresu (line, bar, pie, doughnut, radar, polarArea, bubble, scatter)
 	public $dane=array();		//dane wykresu
 
 	public function __construct()
@@ -36,6 +37,11 @@ class Wykres
 			),
 		);  
 	}
+
+	public function typSet($typ)
+    {
+        $this->typ = $typ;
+    }
 
 	private function _tablicaGeneruj($dane)
 	{
@@ -105,6 +111,7 @@ public function generuj()
     {
         $id = htmlspecialchars($this->_id, ENT_QUOTES, 'UTF-8');
         $daneJson = json_encode($this->dane, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+		$typ = htmlspecialchars($this->typ, ENT_QUOTES, 'UTF-8');
 
         return <<<HTML
 <div id="{$id}" class="CMSMax"></div>
@@ -112,7 +119,7 @@ public function generuj()
     $(document).ready(function() {
         var el = document.getElementById('{$id}');
         if (el && typeof CMSWykresGeneruj === 'function') {
-            CMSWykresGeneruj(el, {$daneJson});
+            CMSWykresGeneruj(el, {$daneJson}, $typ);
         } else if (!el) {
             console.error('PPHPC Chart Error: Nie znaleziono kontenera dla wykresu o ID: {$id}');
         }
