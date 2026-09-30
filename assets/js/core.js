@@ -411,8 +411,8 @@ function CMSCzasKonwertuj(sourceTimezone, time) {
 function CMSOknoInterwal(nazwa, czas)
 {
     // Usuń stary interwał o tej nazwie, jeśli istniał
-    if (CMSInterwaly[nazwa]) {
-        clearInterval(CMSInterwaly[nazwa]);
+    if (window.CMSInterwaly[nazwa]) {
+        clearInterval(window.CMSInterwaly[nazwa]);
     }
 
     // Nowy, czysty URL zgodny z Routerem: /performance?render=widget
@@ -421,9 +421,23 @@ function CMSOknoInterwal(nazwa, czas)
     // Pierwsze pobranie treści kafelka
     CMSDivAktualizuj(url, '#' + nazwa);
 
-    // Ustawienie interwału odświeżania
-    CMSInterwaly[nazwa] = setInterval(() => CMSDivAktualizuj(url, '#' + nazwa), czas);
+    // Ustawienie interwału odświeżania z uwzględnieniem aktywnego focusa
+    window.CMSInterwaly[nazwa] = setInterval(() => {
+        const $targetDiv = $('#' + nazwa);
+        
+        // Pomijamy odświeżanie, jeśli w kafelku jakikolwiek formularz/input ma właśnie focus
+        const hasFocus = $targetDiv.find('input:focus, textarea:focus, select:focus').length > 0;
+        
+        if (!hasFocus) {
+            CMSDivAktualizuj(url, '#' + nazwa);
+        } else {
+            // (Opcjonalnie dla workspace) jeśli zachowujemy stary mechanizm tylko do zmiany tytułu,
+            // gdy jest focus w głównym workspace:
+            if (nazwa === 'workspace' && $('#workspaceTrollboxInput').length === 0) {
+                 CMSDivAktualizuj('/action/update?tryb=workspaceOdswiezTytul', '#workspace .CMSTytul');
+            }
+        }
+    }, czas);
 
-    return CMSInterwaly[nazwa];
+    return window.CMSInterwaly[nazwa];
 }
-
