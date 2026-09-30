@@ -1,4 +1,4 @@
-var CMSInterwaly = {}; 	//interwaly odświeżania okien
+window.CMSInterwaly = window.CMSInterwaly || {}; 
 
 (function($)
 {
